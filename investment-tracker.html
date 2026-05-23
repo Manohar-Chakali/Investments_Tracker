@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- saved from url=(0065)file:///C:/Users/Lenovo/Downloads/investment-tracker-ready_1.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Investment Payment Tracker</title>
-    <script src="./investment-tracker_files/firebase-app.js.download"></script>
-    <script src="./investment-tracker_files/firebase-database.js.download"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,6 @@
             --border-color: #e5e5e1;
             --accent-green: #10b981;
             --accent-amber: #f59e0b;
-            --accent-red: #ef4444;
             --accent-blue: #3b82f6;
         }
 
@@ -47,7 +46,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
             font-size: 16px;
             line-height: 1.5;
             overflow-x: hidden;
@@ -58,12 +57,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0.75rem;
-            }
         }
 
         .header {
@@ -95,6 +88,34 @@
             align-items: center;
         }
 
+        .sync-status {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .sync-status.syncing {
+            color: var(--accent-amber);
+            animation: pulse 1.5s infinite;
+        }
+
+        .sync-status.synced {
+            color: var(--accent-green);
+        }
+
+        .sync-status.error {
+            color: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .mode-toggle {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -104,27 +125,6 @@
             font-size: 13px;
             font-weight: 500;
             color: var(--text-primary);
-            transition: all 0.2s;
-        }
-
-        .mode-toggle:hover {
-            background: var(--bg-tertiary);
-        }
-
-        .sync-status {
-            font-size: 12px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-        }
-
-        .sync-status.syncing {
-            color: var(--accent-amber);
-        }
-
-        .sync-status.synced {
-            color: var(--accent-green);
         }
 
         .metrics {
@@ -132,13 +132,6 @@
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
             margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .metrics {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
         }
 
         .metric-card {
@@ -183,13 +176,6 @@
             border: 1px solid var(--border-color);
         }
 
-        @media (max-width: 768px) {
-            .controls-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-        }
-
         .controls-info h3 {
             font-size: 14px;
             font-weight: 500;
@@ -212,21 +198,6 @@
             font-size: 13px;
             font-weight: 500;
             transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .button:hover {
-            background: var(--bg-secondary);
-        }
-
-        .button.primary {
-            background: var(--accent-blue);
-            color: white;
-            border-color: var(--accent-blue);
-        }
-
-        .button.primary:hover {
-            opacity: 0.9;
         }
 
         .button.active {
@@ -242,7 +213,6 @@
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 1rem;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
 
         .tab-button {
@@ -254,12 +224,7 @@
             cursor: pointer;
             font-size: 13px;
             font-weight: 500;
-            transition: all 0.15s;
             white-space: nowrap;
-        }
-
-        .tab-button:hover {
-            color: var(--text-primary);
         }
 
         .tab-button.active {
@@ -285,7 +250,6 @@
 
         .table-wrapper {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             margin-bottom: 2rem;
         }
 
@@ -317,10 +281,6 @@
             background: rgba(16, 185, 129, 0.08);
         }
 
-        tbody tr.partial {
-            background: rgba(245, 158, 11, 0.08);
-        }
-
         input[type="number"],
         input[type="text"],
         input[type="email"] {
@@ -332,15 +292,6 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             font-family: inherit;
-            transition: border-color 0.2s;
-        }
-
-        input[type="number"]:focus,
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            background: var(--bg-secondary);
         }
 
         input[type="checkbox"] {
@@ -348,20 +299,6 @@
             height: 20px;
             cursor: pointer;
             accent-color: var(--accent-green);
-        }
-
-        @media (max-width: 768px) {
-            input[type="number"],
-            input[type="text"],
-            input[type="email"] {
-                padding: 10px;
-                font-size: 16px;
-            }
-
-            input[type="checkbox"] {
-                width: 24px;
-                height: 24px;
-            }
         }
 
         .complete-check {
@@ -383,20 +320,6 @@
             font-weight: 500;
             margin-bottom: 1rem;
             color: var(--text-primary);
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            font-size: 13px;
-            color: var(--text-primary);
-        }
-
-        .checkbox-label input[type="checkbox"] {
-            margin: 0;
         }
 
         .footer {
@@ -423,29 +346,6 @@
             color: var(--text-tertiary);
             margin-top: 4px;
         }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 20px;
-            }
-
-            .metrics {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            table {
-                font-size: 12px;
-            }
-
-            th, td {
-                padding: 8px 4px;
-            }
-
-            .header-controls {
-                width: 100%;
-                justify-content: flex-end;
-            }
-        }
     </style>
 </head>
 <body>
@@ -456,7 +356,7 @@
                 <p id="headerInfo">Created <span id="createdDate">--</span> • <span id="duration">36 months</span></p>
             </div>
             <div class="header-controls">
-                <div class="sync-status" id="syncStatus">Connecting...</div>
+                <div class="sync-status syncing" id="syncStatus">Connecting...</div>
                 <button class="mode-toggle" onclick="toggleDarkMode()">🌙 Dark</button>
             </div>
         </div>
@@ -499,10 +399,10 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-button active" onclick="switchTab(&#39;dashboardTab&#39;, this)">Dashboard</button>
-            <button class="tab-button" onclick="switchTab(&#39;companyTab&#39;, this)">Payments</button>
-            <button class="tab-button" onclick="switchTab(&#39;emiTab&#39;, this)">EMI</button>
-            <button class="tab-button" onclick="switchTab(&#39;exportTab&#39;, this)">More</button>
+            <button class="tab-button active" onclick="switchTab('dashboardTab', this)">Dashboard</button>
+            <button class="tab-button" onclick="switchTab('companyTab', this)">Payments</button>
+            <button class="tab-button" onclick="switchTab('emiTab', this)">EMI</button>
+            <button class="tab-button" onclick="switchTab('exportTab', this)">More</button>
         </div>
 
         <div id="companyTab" class="tab-content">
@@ -549,7 +449,7 @@
                 <h3>📥 Export Data</h3>
                 <button class="button" onclick="exportJSON()">Download JSON Backup</button>
                 <p style="margin: 1rem 0 0 0; font-size: 12px; color: var(--text-secondary);">
-                    Real-time cloud sync active. Export for backup &amp; tax records.
+                    Real-time cloud sync active. Export for backup & tax records.
                 </p>
             </div>
 
@@ -559,23 +459,11 @@
                     <strong>Principal Investment:</strong> Rs. 5,00,000
                 </p>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                    <strong>Monthly Payment:</strong> Rs. 15,000 (Rs. 10,000 interest + Rs. 5,000 principal)
+                    <strong>Monthly Payment:</strong> Rs. 15,000
                 </p>
                 <p style="font-size: 13px; color: var(--text-secondary);">
-                    <strong>EMI Obligation:</strong> Rs. 13,650/month (Reducing balance)
+                    <strong>EMI Obligation:</strong> Rs. 13,650/month
                 </p>
-            </div>
-
-            <div class="section">
-                <h3>🔔 Email Reminders (Optional)</h3>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="emailRemindersCheck" onchange="toggleEmailReminders()">
-                    <span>Enable reminders by 5th of month</span>
-                </label>
-                <div id="emailSection" style="display: none;">
-                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">Email Address</label>
-                    <input type="email" id="emailAddress" placeholder="your@email.com" onchange="updateEmail()">
-                </div>
             </div>
         </div>
 
@@ -585,7 +473,7 @@
     </div>
 
     <script>
-        // Firebase Configuration - UPDATED WITH YOUR CREDENTIALS
+        // Firebase Configuration
         const firebaseConfig = {
           apiKey: "AIzaSyDQqY1abiMQlN-ZJHtI7r9FUJ8xDrj8W3M",
           authDomain: "investments-tracker-1f0ae.firebaseapp.com",
@@ -593,18 +481,21 @@
           projectId: "investments-tracker-1f0ae",
           storageBucket: "investments-tracker-1f0ae.firebasestorage.app",
           messagingSenderId: "1046185079821",
-          appId: "1:1046185079821:web:593176ea051389473f1144",
-          measurementId: "G-36Y3CXNDMW"
+          appId: "1:1046185079821:web:593176ea051389473f1144"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+
         const db = firebase.database();
 
         let tracker = {
             extend4Years: false,
-            emailReminders: false,
-            emailAddress: '',
             createdDate: new Date().toISOString().split('T')[0],
             companyPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
@@ -623,41 +514,69 @@
             })),
         };
 
-        let isSyncing = false;
         let isInitialized = false;
 
         function initializeTracker() {
-            db.ref('tracker').on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    tracker = { ...tracker, ...data };
-                } else {
-                    db.ref('tracker').set(tracker);
-                }
-                isInitialized = true;
-                renderAll();
-                updateSyncStatus(true);
-            });
+            console.log('Attempting to initialize tracker from Firebase...');
+            
+            db.ref('tracker').once('value')
+                .then((snapshot) => {
+                    console.log('Firebase connection successful');
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        tracker = { ...tracker, ...data };
+                        console.log('Data loaded from Firebase');
+                    } else {
+                        console.log('No data found, creating new tracker');
+                        db.ref('tracker').set(tracker);
+                    }
+                    isInitialized = true;
+                    renderAll();
+                    updateSyncStatus(true);
+                    
+                    // Set up real-time listener after initial load
+                    db.ref('tracker').on('value', (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            tracker = { ...tracker, ...data };
+                            renderAll();
+                        }
+                    }, (error) => {
+                        console.error('Listener error:', error);
+                        updateSyncStatus(false, 'Connection error');
+                    });
+                })
+                .catch((error) => {
+                    console.error('Firebase connection error:', error);
+                    updateSyncStatus(false, 'Firebase error');
+                });
         }
 
-        function saveData() {
-            isSyncing = true;
-            updateSyncStatus(false);
-            db.ref('tracker').set(tracker, (error) => {
-                isSyncing = false;
-                updateSyncStatus(true);
-            });
-        }
-
-        function updateSyncStatus(synced) {
+        function updateSyncStatus(synced, message = null) {
             const status = document.getElementById('syncStatus');
             if (synced) {
                 status.textContent = '✓ Synced';
                 status.className = 'sync-status synced';
+            } else if (message) {
+                status.textContent = message;
+                status.className = 'sync-status error';
             } else {
                 status.textContent = 'Syncing...';
                 status.className = 'sync-status syncing';
             }
+        }
+
+        function saveData() {
+            updateSyncStatus(false);
+            db.ref('tracker').set(tracker)
+                .then(() => {
+                    updateSyncStatus(true);
+                    console.log('Data saved successfully');
+                })
+                .catch((error) => {
+                    console.error('Save error:', error);
+                    updateSyncStatus(false, 'Save failed');
+                });
         }
 
         function renderAll() {
@@ -670,19 +589,17 @@
 
         function updateDuration() {
             const months = tracker.extend4Years ? 48 : 36;
-            document.getElementById('duration').textContent = `${months} months (${months === 36 ? '3 years' : '4 years'})`;
+            document.getElementById('duration').textContent = `${months} months`;
             document.getElementById('companyTitle').textContent = `Company Payments (${months} months)`;
             document.getElementById('emiTitle').textContent = `EMI Tracking (${months} months @ Rs. 13,650)`;
         }
 
         function updateMetrics() {
             const months = tracker.extend4Years ? 48 : 36;
-            
             const companyTotal = tracker.companyPayments.slice(0, months).reduce((sum, p) => sum + (p.amount || 0), 0);
             const companyReceived = tracker.companyPayments.slice(0, months).filter(p => p.youReceived).reduce((sum, p) => sum + (p.amount || 0), 0);
             const emiTotal = tracker.emiPayments.slice(0, months).reduce((sum, p) => sum + (p.amount || 0), 0);
             const emiPaid = tracker.emiPayments.slice(0, months).filter(p => p.youPaid).reduce((sum, p) => sum + (p.amount || 0), 0);
-            
             const companyComplete = tracker.companyPayments.slice(0, months).filter(p => p.companySent && p.youReceived).length;
             const emiComplete = tracker.emiPayments.slice(0, months).filter(p => p.youPaid && p.companyPaid).length;
 
@@ -698,8 +615,7 @@
             const currentMonth = tracker.companyPayments[monthIdx - 1];
             const defaultAmount = 15000;
             const advance = currentMonth.advance || 0;
-            const adjusted = Math.max(0, defaultAmount - advance);
-            return adjusted;
+            return Math.max(0, defaultAmount - advance);
         }
 
         function renderCompanyTable() {
@@ -710,28 +626,19 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.companyPayments[i];
                 const isComplete = p.companySent && p.youReceived;
-                const isPartial = p.companySent || p.youReceived;
                 const nextMonthAdjust = getAdjustedAmount(i + 2);
-                
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
-                else if (isPartial) row.classList.add('partial');
 
                 const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">M${i + 2}: ${nextMonthAdjust.toLocaleString('en-IN')}</div>` : '';
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td><input type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();" style="width: 100%;"></td>
-                    <td>
-                        <input type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();" style="width: 100%;">
-                        ${nextMonthInfo}
-                    </td>
+                    <td><input type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
+                    <td><input type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
-                    <td style="text-align: center;">
-                        <input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">
-                        ${isComplete ? '<span class="complete-check">✓</span>' : ''}
-                    </td>
-                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateCompany(${i}, 'comments', this.value); saveData();" style="width: 100%;"></td>
+                    <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
+                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -745,21 +652,15 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.emiPayments[i];
                 const isComplete = p.youPaid && p.companyPaid;
-                const isPartial = p.youPaid || p.companyPaid;
-                
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
-                else if (isPartial) row.classList.add('partial');
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
                     <td>Rs. 13,650</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
-                    <td style="text-align: center;">
-                        <input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">
-                        ${isComplete ? '<span class="complete-check">✓</span>' : ''}
-                    </td>
-                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateEmi(${i}, 'comments', this.value); saveData();" style="width: 100%;"></td>
+                    <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
+                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -776,11 +677,7 @@
         }
 
         function updateEmi(idx, field, value) {
-            if (field === 'youPaid' || field === 'companyPaid') {
-                tracker.emiPayments[idx][field] = value;
-            } else {
-                tracker.emiPayments[idx][field] = value;
-            }
+            tracker.emiPayments[idx][field] = (field === 'youPaid' || field === 'companyPaid') ? value : value;
         }
 
         function toggleExtend() {
@@ -788,18 +685,6 @@
             const btn = document.getElementById('extendButton');
             btn.classList.toggle('active');
             btn.textContent = tracker.extend4Years ? '✓ 4 Years Active' : 'Enable 4 Years';
-            saveData();
-        }
-
-        function toggleEmailReminders() {
-            tracker.emailReminders = document.getElementById('emailRemindersCheck').checked;
-            const emailSection = document.getElementById('emailSection');
-            emailSection.style.display = tracker.emailReminders ? 'block' : 'none';
-            saveData();
-        }
-
-        function updateEmail() {
-            tracker.emailAddress = document.getElementById('emailAddress').value;
             saveData();
         }
 
@@ -818,7 +703,6 @@
             a.href = url;
             a.download = `tracker-backup-${tracker.createdDate}.json`;
             a.click();
-            URL.revokeObjectURL(url);
         }
 
         function toggleDarkMode() {
@@ -826,14 +710,15 @@
             localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
         }
 
-        // Load dark mode preference
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
         }
 
-        // Initialize
-        initializeTracker();
+        // Start initialization when page loads
+        window.addEventListener('load', () => {
+            console.log('Page loaded, initializing Firebase...');
+            setTimeout(initializeTracker, 500);
+        });
     </script>
-
-
-</body></html>
+</body>
+</html>
