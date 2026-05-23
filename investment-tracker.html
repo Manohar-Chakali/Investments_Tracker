@@ -16,31 +16,36 @@
 
         :root {
             --bg-primary: #ffffff;
-            --bg-secondary: #f8f7f5;
-            --bg-tertiary: #efefed;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --text-tertiary: #999999;
-            --border-color: #e5e5e1;
+            --bg-secondary: #f7f8fb;
+            --bg-tertiary: #edf2f7;
+            --text-primary: #111827;
+            --text-secondary: #5f6b7a;
+            --text-tertiary: #8a94a6;
+            --border-color: #dfe5ee;
             --accent-green: #10b981;
             --accent-amber: #f59e0b;
-            --accent-blue: #3b82f6;
+            --accent-blue: #2563eb;
+            --accent-indigo: #4f46e5;
+            --shadow-soft: 0 18px 45px rgba(20, 34, 66, 0.08);
         }
 
         body.dark-mode {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2a2a2a;
-            --bg-tertiary: #3a3a3a;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --text-tertiary: #999999;
-            --border-color: #404040;
+            --bg-primary: #111827;
+            --bg-secondary: #182235;
+            --bg-tertiary: #243047;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.25);
         }
 
         html, body {
             width: 100%;
             height: 100%;
-            background-color: var(--bg-primary);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 32rem),
+                linear-gradient(180deg, var(--bg-secondary), var(--bg-primary) 22rem);
             color: var(--text-primary);
             transition: background-color 0.3s, color 0.3s;
         }
@@ -54,25 +59,28 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1240px;
             margin: 0 auto;
-            padding: 1rem;
+            padding: 1rem 1rem 2rem;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0.75rem;
+            padding: 1.1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
+            box-shadow: var(--shadow-soft);
             flex-wrap: wrap;
             gap: 1rem;
         }
 
         .header-info h1 {
-            font-size: 24px;
-            font-weight: 500;
+            font-size: 26px;
+            font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--text-primary);
         }
@@ -90,12 +98,13 @@
 
         .sync-status {
             font-size: 12px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--bg-tertiary);
             color: var(--text-secondary);
             min-width: 100px;
             text-align: center;
+            font-weight: 700;
         }
 
         .sync-status.syncing {
@@ -119,27 +128,28 @@
         .mode-toggle {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             color: var(--text-primary);
         }
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
             margin-bottom: 1.5rem;
         }
 
         .metric-card {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: 10px;
+            background: var(--bg-primary);
+            padding: 1.1rem;
+            border-radius: 12px;
             text-align: center;
             border: 1px solid var(--border-color);
+            box-shadow: 0 10px 24px rgba(20, 34, 66, 0.06);
         }
 
         .metric-label {
@@ -152,8 +162,8 @@
         }
 
         .metric-value {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
@@ -164,9 +174,9 @@
         }
 
         .controls-section {
-            background: var(--bg-secondary);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.11), rgba(37, 99, 235, 0.08));
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
@@ -192,11 +202,11 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             transition: all 0.2s;
         }
 
@@ -208,29 +218,38 @@
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
+            gap: 6px;
+            margin-bottom: 1.25rem;
+            padding: 6px;
             overflow-x: auto;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+            box-shadow: 0 12px 28px rgba(20, 34, 66, 0.08);
+            backdrop-filter: blur(12px);
         }
 
         .tab-button {
             background: transparent;
             color: var(--text-secondary);
             border: 1px solid transparent;
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 800;
             white-space: nowrap;
+            flex: 1 0 auto;
         }
 
         .tab-button.active {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
         }
 
         .tab-content {
@@ -242,8 +261,8 @@
         }
 
         .tab-content h2 {
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 800;
             margin-bottom: 1rem;
             color: var(--text-primary);
         }
@@ -251,30 +270,36 @@
         .table-wrapper {
             overflow-x: auto;
             margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            box-shadow: 0 12px 30px rgba(20, 34, 66, 0.06);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 14px;
+            min-width: 780px;
         }
 
         thead tr {
             border-bottom: 1px solid var(--border-color);
-            background: var(--bg-secondary);
+            background: var(--bg-tertiary);
         }
 
         th {
-            padding: 10px 8px;
+            padding: 13px 12px;
             text-align: left;
-            font-weight: 500;
+            font-weight: 800;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 13px;
         }
 
         td {
-            padding: 10px 8px;
+            padding: 14px 12px;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
         tbody tr.complete {
@@ -285,13 +310,23 @@
         input[type="text"],
         input[type="email"] {
             width: 100%;
-            padding: 8px;
-            font-size: 13px;
-            border-radius: 6px;
+            padding: 11px 12px;
+            font-size: 15px;
+            border-radius: 9px;
             border: 1px solid var(--border-color);
             background: var(--bg-primary);
             color: var(--text-primary);
             font-family: inherit;
+        }
+
+        .money-input {
+            min-width: 118px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .comments-input {
+            min-width: 220px;
         }
 
         input[type="checkbox"] {
@@ -308,11 +343,12 @@
         }
 
         .section {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: 10px;
+            background: var(--bg-primary);
+            padding: 1.1rem;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
+            box-shadow: 0 10px 24px rgba(20, 34, 66, 0.05);
         }
 
         .section h3 {
@@ -333,18 +369,55 @@
 
         .alert {
             padding: 1rem;
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(37, 99, 235, 0.10);
             border: 1px solid var(--accent-blue);
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1rem;
             font-size: 12px;
             color: var(--text-primary);
         }
 
         .advance-field-label {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-tertiary);
-            margin-top: 4px;
+            margin-top: 8px;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 680px) {
+            .container {
+                padding: 0.75rem 0.75rem 1.5rem;
+            }
+
+            .header {
+                border-radius: 12px;
+            }
+
+            .header-info h1 {
+                font-size: 22px;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .metric-card {
+                padding: 0.85rem;
+            }
+
+            .metric-value {
+                font-size: 16px;
+            }
+
+            .tabs {
+                margin-left: -0.15rem;
+                margin-right: -0.15rem;
+            }
+
+            .tab-button {
+                padding: 10px 14px;
+            }
         }
     </style>
 </head>
@@ -359,6 +432,13 @@
                 <div class="sync-status syncing" id="syncStatus">Connecting...</div>
                 <button class="mode-toggle" onclick="toggleDarkMode()">🌙 Dark</button>
             </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('dashboardTab', this)">Dashboard</button>
+            <button class="tab-button" onclick="switchTab('companyTab', this)">Payments</button>
+            <button class="tab-button" onclick="switchTab('emiTab', this)">EMI</button>
+            <button class="tab-button" onclick="switchTab('exportTab', this)">More</button>
         </div>
 
         <div id="dashboardTab" class="tab-content active">
@@ -398,24 +478,17 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('dashboardTab', this)">Dashboard</button>
-            <button class="tab-button" onclick="switchTab('companyTab', this)">Payments</button>
-            <button class="tab-button" onclick="switchTab('emiTab', this)">EMI</button>
-            <button class="tab-button" onclick="switchTab('exportTab', this)">More</button>
-        </div>
-
         <div id="companyTab" class="tab-content">
             <h2 id="companyTitle">Company Payments (36 months)</h2>
             <div class="table-wrapper">
                 <table id="companyTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">M</th>
-                            <th style="width: 70px;">Amount</th>
-                            <th style="width: 60px;">Advance</th>
-                            <th style="width: 50px; text-align: center;">Sent</th>
-                            <th style="width: 60px; text-align: center;">Received</th>
+                            <th style="width: 64px;">M</th>
+                            <th style="width: 150px;">Amount</th>
+                            <th style="width: 160px;">Advance</th>
+                            <th style="width: 84px; text-align: center;">Sent</th>
+                            <th style="width: 104px; text-align: center;">Received</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -430,10 +503,10 @@
                 <table id="emiTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">M</th>
-                            <th>Amount</th>
-                            <th style="width: 50px; text-align: center;">Paid</th>
-                            <th style="width: 60px; text-align: center;">Verified</th>
+                            <th style="width: 64px;">M</th>
+                            <th style="width: 150px;">Amount</th>
+                            <th style="width: 84px; text-align: center;">Paid</th>
+                            <th style="width: 104px; text-align: center;">Verified</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -664,11 +737,11 @@
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td><input type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
-                    <td><input type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
+                    <td><input class="money-input" type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
+                    <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -687,10 +760,10 @@
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td>Rs. 13,650</td>
+                    <td><strong>Rs. 13,650</strong></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
