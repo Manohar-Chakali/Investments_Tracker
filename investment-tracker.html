@@ -566,13 +566,14 @@
         }
 
         const db = firebase.database();
+        const DEFAULT_COMPANY_PAYMENT = 15000;
 
         let tracker = {
             extend4Years: false,
             createdDate: new Date().toISOString().split('T')[0],
             companyPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
-                amount: 15000,
+                amount: DEFAULT_COMPANY_PAYMENT,
                 advance: 0,
                 companySent: false,
                 youReceived: false,
@@ -654,6 +655,7 @@
 
         function renderAll() {
             normalizeTracker();
+            applyPendingAdvances();
             updateMetrics();
             renderCompanyTable();
             renderEmiTable();
@@ -664,7 +666,7 @@
         function normalizeTracker() {
             tracker.companyPayments = Array.from({ length: 48 }, (_, i) => ({
                 month: i + 1,
-                amount: 15000,
+                amount: DEFAULT_COMPANY_PAYMENT,
                 advance: 0,
                 companySent: false,
                 youReceived: false,
@@ -706,9 +708,46 @@
         }
 
         function getAdjustedAmount(payment) {
-            const defaultAmount = 15000;
             const advance = payment.advance || 0;
-            return Math.max(0, defaultAmount - advance);
+            return Math.max(0, DEFAULT_COMPANY_PAYMENT - advance);
+        }
+
+        function getPaymentAmount(payment) {
+            return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
+        }
+
+        function applyAdvancePayment(idx) {
+            const sourcePayment = tracker.companyPayments[idx];
+            let remainingAdvance = parseInt(sourcePayment.advance) || 0;
+            sourcePayment.advanceAppliedValue = remainingAdvance;
+
+            for (let i = idx + 1; i < tracker.companyPayments.length && remainingAdvance > 0; i++) {
+                const futurePayment = tracker.companyPayments[i];
+                const coveredAmount = Math.min(remainingAdvance, DEFAULT_COMPANY_PAYMENT);
+                const adjustedAmount = DEFAULT_COMPANY_PAYMENT - coveredAmount;
+
+                if (!futurePayment.amountManuallyEdited || futurePayment.autoAdjustedFrom === idx) {
+                    futurePayment.amount = adjustedAmount;
+                    futurePayment.autoAdjustedFrom = idx;
+                }
+
+                if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
+                    futurePayment.companySent = true;
+                    futurePayment.youReceived = true;
+                    futurePayment.autoCompletedFrom = idx;
+                }
+
+                remainingAdvance -= coveredAmount;
+            }
+        }
+
+        function applyPendingAdvances() {
+            tracker.companyPayments.forEach((payment, idx) => {
+                const advance = parseInt(payment.advance) || 0;
+                if (advance > 0 && payment.advanceAppliedValue !== advance) {
+                    applyAdvancePayment(idx);
+                }
+            });
         }
 
         function escapeHtml(value) {
@@ -737,7 +776,7 @@
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td><input class="money-input" type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
+                    <td><input class="money-input" type="number" value="${getPaymentAmount(p)}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
                     <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
@@ -775,8 +814,8 @@
                 if (field === 'amount') {
                     tracker.companyPayments[idx].amountManuallyEdited = true;
                 }
-                if (field === 'advance' && tracker.companyPayments[idx + 1] && !tracker.companyPayments[idx + 1].amountManuallyEdited) {
-                    tracker.companyPayments[idx + 1].amount = getAdjustedAmount(tracker.companyPayments[idx]);
+                if (field === 'advance') {
+                    applyAdvancePayment(idx);
                 }
             } else if (field === 'companySent' || field === 'youReceived') {
                 tracker.companyPayments[idx][field] = value;
