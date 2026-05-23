@@ -16,31 +16,36 @@
 
         :root {
             --bg-primary: #ffffff;
-            --bg-secondary: #f8f7f5;
-            --bg-tertiary: #efefed;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --text-tertiary: #999999;
-            --border-color: #e5e5e1;
+            --bg-secondary: #f7f8fb;
+            --bg-tertiary: #edf2f7;
+            --text-primary: #111827;
+            --text-secondary: #5f6b7a;
+            --text-tertiary: #8a94a6;
+            --border-color: #dfe5ee;
             --accent-green: #10b981;
             --accent-amber: #f59e0b;
-            --accent-blue: #3b82f6;
+            --accent-blue: #2563eb;
+            --accent-indigo: #4f46e5;
+            --shadow-soft: 0 18px 45px rgba(20, 34, 66, 0.08);
         }
 
         body.dark-mode {
-            --bg-primary: #1a1a1a;
-            --bg-secondary: #2a2a2a;
-            --bg-tertiary: #3a3a3a;
-            --text-primary: #ffffff;
-            --text-secondary: #cccccc;
-            --text-tertiary: #999999;
-            --border-color: #404040;
+            --bg-primary: #111827;
+            --bg-secondary: #182235;
+            --bg-tertiary: #243047;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --border-color: #334155;
+            --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.25);
         }
 
         html, body {
             width: 100%;
             height: 100%;
-            background-color: var(--bg-primary);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 32rem),
+                linear-gradient(180deg, var(--bg-secondary), var(--bg-primary) 22rem);
             color: var(--text-primary);
             transition: background-color 0.3s, color 0.3s;
         }
@@ -54,31 +59,28 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1240px;
             margin: 0 auto;
-            padding: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0.75rem;
-            }
+            padding: 1rem 1rem 2rem;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0.75rem;
+            padding: 1.1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
+            box-shadow: var(--shadow-soft);
             flex-wrap: wrap;
             gap: 1rem;
         }
 
         .header-info h1 {
-            font-size: 24px;
-            font-weight: 500;
+            font-size: 26px;
+            font-weight: 700;
             margin-bottom: 0.5rem;
             color: var(--text-primary);
         }
@@ -96,54 +98,58 @@
 
         .sync-status {
             font-size: 12px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            background: var(--bg-secondary);
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--bg-tertiary);
             color: var(--text-secondary);
             min-width: 100px;
             text-align: center;
+            font-weight: 700;
+        }
+
+        .sync-status.syncing {
+            color: var(--accent-amber);
+            animation: pulse 1.5s infinite;
         }
 
         .sync-status.synced {
             color: var(--accent-green);
         }
 
+        .sync-status.error {
+            color: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .mode-toggle {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             color: var(--text-primary);
-            transition: all 0.2s;
-        }
-
-        .mode-toggle:hover {
-            background: var(--bg-tertiary);
         }
 
         .metrics {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
             margin-bottom: 1.5rem;
         }
 
-        @media (max-width: 768px) {
-            .metrics {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-        }
-
         .metric-card {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: 10px;
+            background: var(--bg-primary);
+            padding: 1.1rem;
+            border-radius: 12px;
             text-align: center;
             border: 1px solid var(--border-color);
+            box-shadow: 0 10px 24px rgba(20, 34, 66, 0.06);
         }
 
         .metric-label {
@@ -156,8 +162,8 @@
         }
 
         .metric-value {
-            font-size: 16px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--text-primary);
             margin-bottom: 0.25rem;
         }
@@ -168,9 +174,9 @@
         }
 
         .controls-section {
-            background: var(--bg-secondary);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.11), rgba(37, 99, 235, 0.08));
             padding: 1rem;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
@@ -178,13 +184,6 @@
             flex-wrap: wrap;
             gap: 1rem;
             border: 1px solid var(--border-color);
-        }
-
-        @media (max-width: 768px) {
-            .controls-section {
-                flex-direction: column;
-                align-items: flex-start;
-            }
         }
 
         .controls-info h3 {
@@ -203,17 +202,12 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 999px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .button:hover {
-            background: var(--bg-secondary);
         }
 
         .button.active {
@@ -224,35 +218,38 @@
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 1rem;
+            gap: 6px;
+            margin-bottom: 1.25rem;
+            padding: 6px;
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg-primary) 92%, transparent);
+            box-shadow: 0 12px 28px rgba(20, 34, 66, 0.08);
+            backdrop-filter: blur(12px);
         }
 
         .tab-button {
             background: transparent;
             color: var(--text-secondary);
             border: 1px solid transparent;
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px 16px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s;
+            font-weight: 800;
             white-space: nowrap;
-        }
-
-        .tab-button:hover {
-            color: var(--text-primary);
+            flex: 1 0 auto;
         }
 
         .tab-button.active {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border-color: var(--border-color);
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
         }
 
         .tab-content {
@@ -264,40 +261,45 @@
         }
 
         .tab-content h2 {
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 20px;
+            font-weight: 800;
             margin-bottom: 1rem;
             color: var(--text-primary);
         }
 
         .table-wrapper {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
             margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-primary);
+            box-shadow: 0 12px 30px rgba(20, 34, 66, 0.06);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 14px;
+            min-width: 780px;
         }
 
         thead tr {
             border-bottom: 1px solid var(--border-color);
-            background: var(--bg-secondary);
+            background: var(--bg-tertiary);
         }
 
         th {
-            padding: 10px 8px;
+            padding: 13px 12px;
             text-align: left;
-            font-weight: 500;
+            font-weight: 800;
             color: var(--text-primary);
-            font-size: 12px;
+            font-size: 13px;
         }
 
         td {
-            padding: 10px 8px;
+            padding: 14px 12px;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
         }
 
         tbody tr.complete {
@@ -308,22 +310,23 @@
         input[type="text"],
         input[type="email"] {
             width: 100%;
-            padding: 8px;
-            font-size: 13px;
-            border-radius: 6px;
+            padding: 11px 12px;
+            font-size: 15px;
+            border-radius: 9px;
             border: 1px solid var(--border-color);
             background: var(--bg-primary);
             color: var(--text-primary);
             font-family: inherit;
-            transition: border-color 0.2s;
         }
 
-        input[type="number"]:focus,
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            background: var(--bg-secondary);
+        .money-input {
+            min-width: 118px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .comments-input {
+            min-width: 220px;
         }
 
         input[type="checkbox"] {
@@ -333,20 +336,6 @@
             accent-color: var(--accent-green);
         }
 
-        @media (max-width: 768px) {
-            input[type="number"],
-            input[type="text"],
-            input[type="email"] {
-                padding: 10px;
-                font-size: 16px;
-            }
-
-            input[type="checkbox"] {
-                width: 24px;
-                height: 24px;
-            }
-        }
-
         .complete-check {
             margin-left: 6px;
             color: var(--accent-green);
@@ -354,11 +343,12 @@
         }
 
         .section {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: 10px;
+            background: var(--bg-primary);
+            padding: 1.1rem;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
+            box-shadow: 0 10px 24px rgba(20, 34, 66, 0.05);
         }
 
         .section h3 {
@@ -366,20 +356,6 @@
             font-weight: 500;
             margin-bottom: 1rem;
             color: var(--text-primary);
-        }
-
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1rem;
-            cursor: pointer;
-            font-size: 13px;
-            color: var(--text-primary);
-        }
-
-        .checkbox-label input[type="checkbox"] {
-            margin: 0;
         }
 
         .footer {
@@ -393,31 +369,54 @@
 
         .alert {
             padding: 1rem;
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(37, 99, 235, 0.10);
             border: 1px solid var(--accent-blue);
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 1rem;
             font-size: 12px;
             color: var(--text-primary);
         }
 
         .advance-field-label {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-tertiary);
-            margin-top: 4px;
+            margin-top: 8px;
+            line-height: 1.25;
+            white-space: nowrap;
         }
 
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 20px;
+        @media (max-width: 680px) {
+            .container {
+                padding: 0.75rem 0.75rem 1.5rem;
             }
 
-            table {
-                font-size: 12px;
+            .header {
+                border-radius: 12px;
             }
 
-            th, td {
-                padding: 8px 4px;
+            .header-info h1 {
+                font-size: 22px;
+            }
+
+            .metrics {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .metric-card {
+                padding: 0.85rem;
+            }
+
+            .metric-value {
+                font-size: 16px;
+            }
+
+            .tabs {
+                margin-left: -0.15rem;
+                margin-right: -0.15rem;
+            }
+
+            .tab-button {
+                padding: 10px 14px;
             }
         }
     </style>
@@ -430,9 +429,16 @@
                 <p id="headerInfo">Created <span id="createdDate">--</span> • <span id="duration">36 months</span></p>
             </div>
             <div class="header-controls">
-                <div class="sync-status synced" id="syncStatus">✓ Synced</div>
+                <div class="sync-status syncing" id="syncStatus">Connecting...</div>
                 <button class="mode-toggle" onclick="toggleDarkMode()">🌙 Dark</button>
             </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('dashboardTab', this)">Dashboard</button>
+            <button class="tab-button" onclick="switchTab('companyTab', this)">Payments</button>
+            <button class="tab-button" onclick="switchTab('emiTab', this)">EMI</button>
+            <button class="tab-button" onclick="switchTab('exportTab', this)">More</button>
         </div>
 
         <div id="dashboardTab" class="tab-content active">
@@ -472,24 +478,17 @@
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-button active" onclick="switchTab('dashboardTab', this)">Dashboard</button>
-            <button class="tab-button" onclick="switchTab('companyTab', this)">Payments</button>
-            <button class="tab-button" onclick="switchTab('emiTab', this)">EMI</button>
-            <button class="tab-button" onclick="switchTab('exportTab', this)">More</button>
-        </div>
-
         <div id="companyTab" class="tab-content">
             <h2 id="companyTitle">Company Payments (36 months)</h2>
             <div class="table-wrapper">
                 <table id="companyTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">M</th>
-                            <th style="width: 70px;">Amount</th>
-                            <th style="width: 60px;">Advance</th>
-                            <th style="width: 50px; text-align: center;">Sent</th>
-                            <th style="width: 60px; text-align: center;">Received</th>
+                            <th style="width: 64px;">M</th>
+                            <th style="width: 150px;">Amount</th>
+                            <th style="width: 160px;">Advance</th>
+                            <th style="width: 84px; text-align: center;">Sent</th>
+                            <th style="width: 104px; text-align: center;">Received</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -504,10 +503,10 @@
                 <table id="emiTable">
                     <thead>
                         <tr>
-                            <th style="width: 40px;">M</th>
-                            <th>Amount</th>
-                            <th style="width: 50px; text-align: center;">Paid</th>
-                            <th style="width: 60px; text-align: center;">Verified</th>
+                            <th style="width: 64px;">M</th>
+                            <th style="width: 150px;">Amount</th>
+                            <th style="width: 84px; text-align: center;">Paid</th>
+                            <th style="width: 104px; text-align: center;">Verified</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -533,23 +532,11 @@
                     <strong>Principal Investment:</strong> Rs. 5,00,000
                 </p>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                    <strong>Monthly Payment:</strong> Rs. 15,000 (Rs. 10,000 interest + Rs. 5,000 principal)
+                    <strong>Monthly Payment:</strong> Rs. 15,000
                 </p>
                 <p style="font-size: 13px; color: var(--text-secondary);">
-                    <strong>EMI Obligation:</strong> Rs. 13,650/month (Reducing balance)
+                    <strong>EMI Obligation:</strong> Rs. 13,650/month
                 </p>
-            </div>
-
-            <div class="section">
-                <h3>🔔 Email Reminders (Optional)</h3>
-                <label class="checkbox-label">
-                    <input type="checkbox" id="emailRemindersCheck" onchange="toggleEmailReminders()">
-                    <span>Enable reminders by 5th of month</span>
-                </label>
-                <div id="emailSection" style="display: none;">
-                    <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; font-weight: 500;">Email Address</label>
-                    <input type="email" id="emailAddress" placeholder="your@email.com" onchange="updateEmail()">
-                </div>
             </div>
         </div>
 
@@ -571,17 +558,22 @@
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+
         const db = firebase.database();
+        const DEFAULT_COMPANY_PAYMENT = 15000;
 
         let tracker = {
             extend4Years: false,
-            emailReminders: false,
-            emailAddress: '',
             createdDate: new Date().toISOString().split('T')[0],
             companyPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
-                amount: 15000,
+                amount: DEFAULT_COMPANY_PAYMENT,
                 advance: 0,
                 companySent: false,
                 youReceived: false,
@@ -596,34 +588,99 @@
             })),
         };
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        let isInitialized = false;
 
         function initializeTracker() {
-            db.ref('tracker').on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    tracker = { ...tracker, ...data };
-                } else {
-                    db.ref('tracker').set(tracker);
-                }
-                renderAll();
-            });
+            console.log('Attempting to initialize tracker from Firebase...');
+            
+            db.ref('tracker').once('value')
+                .then((snapshot) => {
+                    console.log('Firebase connection successful');
+                    if (snapshot.exists()) {
+                        const data = snapshot.val();
+                        tracker = { ...tracker, ...data };
+                        console.log('Data loaded from Firebase');
+                    } else {
+                        console.log('No data found, creating new tracker');
+                        db.ref('tracker').set(tracker);
+                    }
+                    isInitialized = true;
+                    renderAll();
+                    updateSyncStatus(true);
+                    
+                    // Set up real-time listener after initial load
+                    db.ref('tracker').on('value', (snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            tracker = { ...tracker, ...data };
+                            renderAll();
+                        }
+                    }, (error) => {
+                        console.error('Listener error:', error);
+                        updateSyncStatus(false, 'Connection error');
+                    });
+                })
+                .catch((error) => {
+                    console.error('Firebase connection error:', error);
+                    updateSyncStatus(false, 'Firebase error');
+                });
+        }
+
+        function updateSyncStatus(synced, message = null) {
+            const status = document.getElementById('syncStatus');
+            if (synced) {
+                status.textContent = '✓ Synced';
+                status.className = 'sync-status synced';
+            } else if (message) {
+                status.textContent = message;
+                status.className = 'sync-status error';
+            } else {
+                status.textContent = 'Syncing...';
+                status.className = 'sync-status syncing';
+            }
         }
 
         function saveData() {
-            db.ref('tracker').set(tracker);
+            updateSyncStatus(false);
+            db.ref('tracker').set(tracker)
+                .then(() => {
+                    updateSyncStatus(true);
+                    console.log('Data saved successfully');
+                })
+                .catch((error) => {
+                    console.error('Save error:', error);
+                    updateSyncStatus(false, 'Save failed');
+                });
         }
 
         function renderAll() {
+            normalizeTracker();
+            applyPendingAdvances();
             updateMetrics();
             renderCompanyTable();
             renderEmiTable();
             updateDuration();
             document.getElementById('createdDate').textContent = tracker.createdDate;
+        }
+
+        function normalizeTracker() {
+            tracker.companyPayments = Array.from({ length: 48 }, (_, i) => ({
+                month: i + 1,
+                amount: DEFAULT_COMPANY_PAYMENT,
+                advance: 0,
+                companySent: false,
+                youReceived: false,
+                comments: '',
+                ...(tracker.companyPayments && tracker.companyPayments[i] ? tracker.companyPayments[i] : {}),
+            }));
+            tracker.emiPayments = Array.from({ length: 48 }, (_, i) => ({
+                month: i + 1,
+                amount: 13650,
+                youPaid: false,
+                companyPaid: false,
+                comments: '',
+                ...(tracker.emiPayments && tracker.emiPayments[i] ? tracker.emiPayments[i] : {}),
+            }));
         }
 
         function updateDuration() {
@@ -651,9 +708,56 @@
         }
 
         function getAdjustedAmount(payment) {
-            const defaultAmount = 15000;
             const advance = payment.advance || 0;
-            return Math.max(0, defaultAmount - advance);
+            return Math.max(0, DEFAULT_COMPANY_PAYMENT - advance);
+        }
+
+        function getPaymentAmount(payment) {
+            return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
+        }
+
+        function applyAdvancePayment(idx) {
+            const sourcePayment = tracker.companyPayments[idx];
+            let remainingAdvance = parseInt(sourcePayment.advance) || 0;
+            sourcePayment.advanceAppliedValue = remainingAdvance;
+
+            for (let i = idx + 1; i < tracker.companyPayments.length && remainingAdvance > 0; i++) {
+                const futurePayment = tracker.companyPayments[i];
+                const coveredAmount = Math.min(remainingAdvance, DEFAULT_COMPANY_PAYMENT);
+                const adjustedAmount = DEFAULT_COMPANY_PAYMENT - coveredAmount;
+
+                if (!futurePayment.amountManuallyEdited || futurePayment.autoAdjustedFrom === idx) {
+                    futurePayment.amount = adjustedAmount;
+                    futurePayment.autoAdjustedFrom = idx;
+                }
+
+                if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
+                    futurePayment.companySent = true;
+                    futurePayment.youReceived = true;
+                    futurePayment.autoCompletedFrom = idx;
+                }
+
+                remainingAdvance -= coveredAmount;
+            }
+        }
+
+        function applyPendingAdvances() {
+            tracker.companyPayments.forEach((payment, idx) => {
+                const advance = parseInt(payment.advance) || 0;
+                if (advance > 0 && payment.advanceAppliedValue !== advance) {
+                    applyAdvancePayment(idx);
+                }
+            });
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+            }[char]));
         }
 
         function renderCompanyTable() {
@@ -664,22 +768,19 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.companyPayments[i];
                 const isComplete = p.companySent && p.youReceived;
-                const nextMonthAdjust = getAdjustedAmount(tracker.companyPayments[i]);
+                const nextMonthAdjust = getAdjustedAmount(p);
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
 
-                const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">M${i + 2}: ${tracker.companyPayments[i + 1] ? (tracker.companyPayments[i + 1].amount || 15000).toLocaleString('en-IN') : '15,000'}</div>` : '';
+                const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">M${i + 2}: ${nextMonthAdjust.toLocaleString('en-IN')}</div>` : '';
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td><input type="number" value="${p.amount || 15000}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
-                    <td>
-                        <input type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">
-                        ${nextMonthInfo}
-                    </td>
+                    <td><input class="money-input" type="number" value="${getPaymentAmount(p)}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
+                    <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -698,10 +799,10 @@
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
-                    <td>Rs. 13,650</td>
+                    <td><strong>Rs. 13,650</strong></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -713,11 +814,8 @@
                 if (field === 'amount') {
                     tracker.companyPayments[idx].amountManuallyEdited = true;
                 }
-                // FIX: Auto-adjust next month amount when advance changes
-                if (field === 'advance' && tracker.companyPayments[idx + 1] && !tracker.companyPayments[idx + 1].amountManuallyEdited) {
-                    const advance = parseInt(value) || 0;
-                    // If advance is 0, restore to default 15000. Otherwise, reduce by advance amount.
-                    tracker.companyPayments[idx + 1].amount = advance > 0 ? (15000 - advance) : 15000;
+                if (field === 'advance') {
+                    applyAdvancePayment(idx);
                 }
             } else if (field === 'companySent' || field === 'youReceived') {
                 tracker.companyPayments[idx][field] = value;
@@ -727,11 +825,7 @@
         }
 
         function updateEmi(idx, field, value) {
-            if (field === 'youPaid' || field === 'companyPaid') {
-                tracker.emiPayments[idx][field] = value;
-            } else {
-                tracker.emiPayments[idx][field] = value;
-            }
+            tracker.emiPayments[idx][field] = (field === 'youPaid' || field === 'companyPaid') ? value : value;
         }
 
         function toggleExtend() {
@@ -739,18 +833,6 @@
             const btn = document.getElementById('extendButton');
             btn.classList.toggle('active');
             btn.textContent = tracker.extend4Years ? '✓ 4 Years Active' : 'Enable 4 Years';
-            saveData();
-        }
-
-        function toggleEmailReminders() {
-            tracker.emailReminders = document.getElementById('emailRemindersCheck').checked;
-            const emailSection = document.getElementById('emailSection');
-            emailSection.style.display = tracker.emailReminders ? 'block' : 'none';
-            saveData();
-        }
-
-        function updateEmail() {
-            tracker.emailAddress = document.getElementById('emailAddress').value;
             saveData();
         }
 
@@ -769,7 +851,6 @@
             a.href = url;
             a.download = `tracker-backup-${tracker.createdDate}.json`;
             a.click();
-            URL.revokeObjectURL(url);
         }
 
         function toggleDarkMode() {
@@ -781,8 +862,11 @@
             document.body.classList.add('dark-mode');
         }
 
-        // Initialize on page load
-        window.addEventListener('load', initializeTracker);
+        // Start initialization when page loads
+        window.addEventListener('load', () => {
+            console.log('Page loaded, initializing Firebase...');
+            setTimeout(initializeTracker, 500);
+        });
     </script>
 </body>
 </html>
