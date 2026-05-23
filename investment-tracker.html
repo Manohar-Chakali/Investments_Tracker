@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Investment Payment Tracker</title>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -481,12 +481,7 @@
           projectId: "investments-tracker-1f0ae",
           storageBucket: "investments-tracker-1f0ae.firebasestorage.app",
           messagingSenderId: "1046185079821",
-<<<<<<< HEAD
           appId: "1:1046185079821:web:593176ea051389473f1144"
-=======
-          appId: "1:1046185079821:web:593176ea051389473f1144",
-          
->>>>>>> d3ae923e9b80d12f47c3dab10a93f8ed9b4da6e6
         };
 
         // Initialize Firebase
@@ -585,11 +580,32 @@
         }
 
         function renderAll() {
+            normalizeTracker();
             updateMetrics();
             renderCompanyTable();
             renderEmiTable();
             updateDuration();
             document.getElementById('createdDate').textContent = tracker.createdDate;
+        }
+
+        function normalizeTracker() {
+            tracker.companyPayments = Array.from({ length: 48 }, (_, i) => ({
+                month: i + 1,
+                amount: 15000,
+                advance: 0,
+                companySent: false,
+                youReceived: false,
+                comments: '',
+                ...(tracker.companyPayments && tracker.companyPayments[i] ? tracker.companyPayments[i] : {}),
+            }));
+            tracker.emiPayments = Array.from({ length: 48 }, (_, i) => ({
+                month: i + 1,
+                amount: 13650,
+                youPaid: false,
+                companyPaid: false,
+                comments: '',
+                ...(tracker.emiPayments && tracker.emiPayments[i] ? tracker.emiPayments[i] : {}),
+            }));
         }
 
         function updateDuration() {
@@ -616,11 +632,20 @@
             document.getElementById('emiProgress').textContent = `${emiComplete}/${months}`;
         }
 
-        function getAdjustedAmount(monthIdx) {
-            const currentMonth = tracker.companyPayments[monthIdx - 1];
+        function getAdjustedAmount(payment) {
             const defaultAmount = 15000;
-            const advance = currentMonth.advance || 0;
+            const advance = payment.advance || 0;
             return Math.max(0, defaultAmount - advance);
+        }
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+            }[char]));
         }
 
         function renderCompanyTable() {
@@ -631,7 +656,7 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.companyPayments[i];
                 const isComplete = p.companySent && p.youReceived;
-                const nextMonthAdjust = getAdjustedAmount(i + 2);
+                const nextMonthAdjust = getAdjustedAmount(p);
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
 
@@ -643,7 +668,7 @@
                     <td><input type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -665,7 +690,7 @@
                     <td>Rs. 13,650</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input type="text" placeholder="Notes..." value="${p.comments}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
+                    <td><input type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -674,6 +699,12 @@
         function updateCompany(idx, field, value) {
             if (field === 'amount' || field === 'advance') {
                 tracker.companyPayments[idx][field] = parseInt(value) || 0;
+                if (field === 'amount') {
+                    tracker.companyPayments[idx].amountManuallyEdited = true;
+                }
+                if (field === 'advance' && tracker.companyPayments[idx + 1] && !tracker.companyPayments[idx + 1].amountManuallyEdited) {
+                    tracker.companyPayments[idx + 1].amount = getAdjustedAmount(tracker.companyPayments[idx]);
+                }
             } else if (field === 'companySent' || field === 'youReceived') {
                 tracker.companyPayments[idx][field] = value;
             } else {
@@ -725,11 +756,5 @@
             setTimeout(initializeTracker, 500);
         });
     </script>
-<<<<<<< HEAD
 </body>
 </html>
-=======
-
-
-</body></html>
->>>>>>> d3ae923e9b80d12f47c3dab10a93f8ed9b4da6e6
