@@ -216,6 +216,17 @@
             border-color: var(--accent-green);
         }
 
+        .button.secondary {
+            background: var(--bg-secondary);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
         .tabs {
             display: flex;
             gap: 6px;
@@ -280,7 +291,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 780px;
+            min-width: 1180px;
         }
 
         thead tr {
@@ -308,7 +319,8 @@
 
         input[type="number"],
         input[type="text"],
-        input[type="email"] {
+        input[type="email"],
+        input[type="date"] {
             width: 100%;
             padding: 11px 12px;
             font-size: 15px;
@@ -329,6 +341,11 @@
             min-width: 220px;
         }
 
+        .date-input {
+            min-width: 140px;
+            font-size: 13px !important;
+        }
+
         input[type="checkbox"] {
             width: 20px;
             height: 20px;
@@ -340,6 +357,47 @@
             margin-left: 6px;
             color: var(--accent-green);
             font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 116px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .status-complete {
+            background: rgba(16, 185, 129, 0.14);
+            color: var(--accent-green);
+        }
+
+        .status-partial {
+            background: rgba(245, 158, 11, 0.16);
+            color: #b45309;
+        }
+
+        .status-covered {
+            background: rgba(37, 99, 235, 0.13);
+            color: var(--accent-blue);
+        }
+
+        .status-pending {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .auto-note {
+            display: block;
+            margin-top: 6px;
+            color: var(--accent-blue);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.25;
         }
 
         .section {
@@ -356,6 +414,56 @@
             font-weight: 500;
             margin-bottom: 1rem;
             color: var(--text-primary);
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .small-note {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 0.65rem;
+        }
+
+        .activity-log {
+            display: grid;
+            gap: 0.65rem;
+            max-height: 280px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+
+        .activity-item {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+        }
+
+        .activity-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .activity-meta {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
         .footer {
@@ -485,10 +593,13 @@
                     <thead>
                         <tr>
                             <th style="width: 64px;">M</th>
+                            <th style="width: 140px;">Status</th>
                             <th style="width: 150px;">Amount</th>
                             <th style="width: 160px;">Advance</th>
                             <th style="width: 84px; text-align: center;">Sent</th>
+                            <th style="width: 160px;">Sent Date</th>
                             <th style="width: 104px; text-align: center;">Received</th>
+                            <th style="width: 160px;">Received Date</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -504,9 +615,12 @@
                     <thead>
                         <tr>
                             <th style="width: 64px;">M</th>
+                            <th style="width: 140px;">Status</th>
                             <th style="width: 150px;">Amount</th>
                             <th style="width: 84px; text-align: center;">Paid</th>
+                            <th style="width: 160px;">Paid Date</th>
                             <th style="width: 104px; text-align: center;">Verified</th>
+                            <th style="width: 160px;">Verified Date</th>
                             <th>Comments</th>
                         </tr>
                     </thead>
@@ -517,17 +631,44 @@
 
         <div id="exportTab" class="tab-content">
             <h2>More Options</h2>
+
+            <div class="section">
+                <h3>Security & Sync</h3>
+                <div class="field-grid">
+                    <div>
+                        <label class="field-label" for="userName">Your Name</label>
+                        <input type="text" id="userName" placeholder="Example: Manohar" onchange="updateUserName(this.value)">
+                    </div>
+                    <div>
+                        <label class="field-label" for="trackerKey">Tracker Key</label>
+                        <input type="text" id="trackerKey" placeholder="Optional secret key" onchange="updateTrackerKey(this.value)">
+                    </div>
+                </div>
+                <div class="button-row">
+                    <button class="button secondary" onclick="generateTrackerKey()">Generate Secret Key</button>
+                    <button class="button secondary" onclick="resetAutoAdjustments()">Recalculate Advances</button>
+                </div>
+                <p class="small-note" id="trackerPathInfo"></p>
+            </div>
             
             <div class="section">
-                <h3>📥 Export Data</h3>
-                <button class="button" onclick="exportJSON()">Download JSON Backup</button>
+                <h3>Export Data</h3>
+                <div class="button-row">
+                    <button class="button" onclick="exportJSON()">Download JSON Backup</button>
+                    <button class="button secondary" onclick="exportCSV()">Download CSV</button>
+                </div>
                 <p style="margin: 1rem 0 0 0; font-size: 12px; color: var(--text-secondary);">
                     Real-time cloud sync active. Export for backup & tax records.
                 </p>
             </div>
 
             <div class="section">
-                <h3>ℹ️ Agreement Details</h3>
+                <h3>Activity Log</h3>
+                <div class="activity-log" id="activityLog"></div>
+            </div>
+
+            <div class="section">
+                <h3>Agreement Details</h3>
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     <strong>Principal Investment:</strong> Rs. 5,00,000
                 </p>
@@ -567,33 +708,94 @@
 
         const db = firebase.database();
         const DEFAULT_COMPANY_PAYMENT = 15000;
+        const DEFAULT_TRACKER_KEY = 'tracker';
+        const USER_NAME_STORAGE_KEY = 'investmentTrackerUserName';
+        const TRACKER_KEY_STORAGE_KEY = 'investmentTrackerKey';
+
+        let currentUserName = localStorage.getItem(USER_NAME_STORAGE_KEY) || 'User';
+        let currentTrackerKey = getInitialTrackerKey();
 
         let tracker = {
             extend4Years: false,
+            userName: currentUserName,
+            activityLog: [],
             createdDate: new Date().toISOString().split('T')[0],
             companyPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
                 amount: DEFAULT_COMPANY_PAYMENT,
                 advance: 0,
                 companySent: false,
+                sentDate: '',
                 youReceived: false,
+                receivedDate: '',
                 comments: '',
             })),
             emiPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
                 amount: 13650,
                 youPaid: false,
+                paidDate: '',
                 companyPaid: false,
+                verifiedDate: '',
                 comments: '',
             })),
         };
 
         let isInitialized = false;
 
+        function sanitizeTrackerKey(value) {
+            return String(value || '')
+                .trim()
+                .replace(/[^a-zA-Z0-9_-]/g, '')
+                .slice(0, 80);
+        }
+
+        function getInitialTrackerKey() {
+            const params = new URLSearchParams(window.location.search);
+            const fromUrl = sanitizeTrackerKey(params.get('tracker'));
+            const fromStorage = sanitizeTrackerKey(localStorage.getItem(TRACKER_KEY_STORAGE_KEY));
+            return fromUrl || fromStorage || DEFAULT_TRACKER_KEY;
+        }
+
+        function getTrackerPath() {
+            return currentTrackerKey === DEFAULT_TRACKER_KEY ? 'tracker' : `trackers/${currentTrackerKey}`;
+        }
+
+        function getTrackerRef() {
+            return db.ref(getTrackerPath());
+        }
+
+        function getTodayISO() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '';
+            try {
+                return new Date(value).toLocaleString('en-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                });
+            } catch (error) {
+                return value;
+            }
+        }
+
+        function addActivity(title, details = '') {
+            tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
+            tracker.activityLog.unshift({
+                title,
+                details,
+                by: currentUserName || 'User',
+                at: new Date().toISOString(),
+            });
+            tracker.activityLog = tracker.activityLog.slice(0, 100);
+        }
+
         function initializeTracker() {
             console.log('Attempting to initialize tracker from Firebase...');
             
-            db.ref('tracker').once('value')
+            getTrackerRef().once('value')
                 .then((snapshot) => {
                     console.log('Firebase connection successful');
                     if (snapshot.exists()) {
@@ -602,14 +804,14 @@
                         console.log('Data loaded from Firebase');
                     } else {
                         console.log('No data found, creating new tracker');
-                        db.ref('tracker').set(tracker);
+                        getTrackerRef().set(tracker);
                     }
                     isInitialized = true;
                     renderAll();
                     updateSyncStatus(true);
                     
                     // Set up real-time listener after initial load
-                    db.ref('tracker').on('value', (snapshot) => {
+                    getTrackerRef().on('value', (snapshot) => {
                         if (snapshot.exists()) {
                             const data = snapshot.val();
                             tracker = { ...tracker, ...data };
@@ -642,7 +844,7 @@
 
         function saveData() {
             updateSyncStatus(false);
-            db.ref('tracker').set(tracker)
+            getTrackerRef().set(tracker)
                 .then(() => {
                     updateSyncStatus(true);
                     console.log('Data saved successfully');
@@ -659,6 +861,8 @@
             updateMetrics();
             renderCompanyTable();
             renderEmiTable();
+            renderActivityLog();
+            renderSecurityInfo();
             updateDuration();
             document.getElementById('createdDate').textContent = tracker.createdDate;
         }
@@ -669,7 +873,9 @@
                 amount: DEFAULT_COMPANY_PAYMENT,
                 advance: 0,
                 companySent: false,
+                sentDate: '',
                 youReceived: false,
+                receivedDate: '',
                 comments: '',
                 ...(tracker.companyPayments && tracker.companyPayments[i] ? tracker.companyPayments[i] : {}),
             }));
@@ -677,10 +883,14 @@
                 month: i + 1,
                 amount: 13650,
                 youPaid: false,
+                paidDate: '',
                 companyPaid: false,
+                verifiedDate: '',
                 comments: '',
                 ...(tracker.emiPayments && tracker.emiPayments[i] ? tracker.emiPayments[i] : {}),
             }));
+            tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
+            tracker.userName = tracker.userName || currentUserName;
         }
 
         function updateDuration() {
@@ -716,6 +926,35 @@
             return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
         }
 
+        function getCompanyStatus(payment) {
+            if (payment.companySent && payment.youReceived) {
+                return payment.autoCompletedFrom !== undefined
+                    ? { label: 'Advance covered', className: 'status-covered' }
+                    : { label: 'Complete', className: 'status-complete' };
+            }
+            if (payment.companySent || payment.youReceived || getPaymentAmount(payment) < DEFAULT_COMPANY_PAYMENT) {
+                return { label: 'Partial', className: 'status-partial' };
+            }
+            return { label: 'Pending', className: 'status-pending' };
+        }
+
+        function getEmiStatus(payment) {
+            if (payment.youPaid && payment.companyPaid) return { label: 'Complete', className: 'status-complete' };
+            if (payment.youPaid || payment.companyPaid) return { label: 'Partial', className: 'status-partial' };
+            return { label: 'Pending', className: 'status-pending' };
+        }
+
+        function getAdvanceNote(payment) {
+            if (payment.autoCompletedFrom !== undefined) {
+                return `Covered by M${Number(payment.autoCompletedFrom) + 1} advance`;
+            }
+            if (payment.autoAdjustedFrom !== undefined && getPaymentAmount(payment) < DEFAULT_COMPANY_PAYMENT) {
+                const reduction = DEFAULT_COMPANY_PAYMENT - getPaymentAmount(payment);
+                return `Reduced Rs. ${reduction.toLocaleString('en-IN')} by M${Number(payment.autoAdjustedFrom) + 1} advance`;
+            }
+            return '';
+        }
+
         function clearAdvanceEffects(idx) {
             tracker.companyPayments.forEach((payment) => {
                 if (payment.autoAdjustedFrom === idx) {
@@ -726,6 +965,8 @@
                 if (payment.autoCompletedFrom === idx) {
                     payment.companySent = false;
                     payment.youReceived = false;
+                    payment.sentDate = '';
+                    payment.receivedDate = '';
                     delete payment.autoCompletedFrom;
                 }
             });
@@ -749,6 +990,8 @@
                 if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
                     futurePayment.companySent = true;
                     futurePayment.youReceived = true;
+                    futurePayment.sentDate = futurePayment.sentDate || getTodayISO();
+                    futurePayment.receivedDate = futurePayment.receivedDate || getTodayISO();
                     futurePayment.autoCompletedFrom = idx;
                 }
 
@@ -783,6 +1026,8 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.companyPayments[i];
                 const isComplete = p.companySent && p.youReceived;
+                const status = getCompanyStatus(p);
+                const advanceNote = getAdvanceNote(p);
                 const nextMonthAdjust = getAdjustedAmount(p);
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
@@ -791,10 +1036,13 @@
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
+                    <td><span class="status-badge ${status.className}">${status.label}</span>${advanceNote ? `<span class="auto-note">${advanceNote}</span>` : ''}</td>
                     <td><input class="money-input" type="number" value="${getPaymentAmount(p)}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
                     <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
+                    <td><input class="date-input" type="date" value="${p.sentDate || ''}" onchange="updateCompany(${i}, 'sentDate', this.value); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
+                    <td><input class="date-input" type="date" value="${p.receivedDate || ''}" onchange="updateCompany(${i}, 'receivedDate', this.value); saveData();"></td>
                     <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
@@ -809,14 +1057,18 @@
             for (let i = 0; i < months; i++) {
                 const p = tracker.emiPayments[i];
                 const isComplete = p.youPaid && p.companyPaid;
+                const status = getEmiStatus(p);
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
 
                 row.innerHTML = `
                     <td style="font-weight: 500;">M${i + 1}</td>
+                    <td><span class="status-badge ${status.className}">${status.label}</span></td>
                     <td><strong>Rs. 13,650</strong></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
+                    <td><input class="date-input" type="date" value="${p.paidDate || ''}" onchange="updateEmi(${i}, 'paidDate', this.value); saveData();"></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
+                    <td><input class="date-input" type="date" value="${p.verifiedDate || ''}" onchange="updateEmi(${i}, 'verifiedDate', this.value); saveData();"></td>
                     <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
                 `;
                 tbody.appendChild(row);
@@ -824,26 +1076,130 @@
         }
 
         function updateCompany(idx, field, value) {
+            const payment = tracker.companyPayments[idx];
+            const oldValue = payment[field];
             if (field === 'amount' || field === 'advance') {
-                tracker.companyPayments[idx][field] = parseInt(value) || 0;
+                payment[field] = parseInt(value) || 0;
                 if (field === 'amount') {
-                    tracker.companyPayments[idx].amountManuallyEdited = true;
-                    delete tracker.companyPayments[idx].autoAdjustedFrom;
+                    payment.amountManuallyEdited = true;
+                    delete payment.autoAdjustedFrom;
                 }
                 if (field === 'advance') {
                     applyAdvancePayment(idx);
                 }
             } else if (field === 'companySent' || field === 'youReceived') {
-                tracker.companyPayments[idx][field] = value;
-                delete tracker.companyPayments[idx].autoCompletedFrom;
+                payment[field] = value;
+                if (field === 'companySent') {
+                    payment.sentDate = value ? (payment.sentDate || getTodayISO()) : '';
+                }
+                if (field === 'youReceived') {
+                    payment.receivedDate = value ? (payment.receivedDate || getTodayISO()) : '';
+                }
+                delete payment.autoCompletedFrom;
             } else {
-                tracker.companyPayments[idx][field] = value;
+                payment[field] = value;
             }
+            addActivity(
+                `M${idx + 1} company ${field} updated`,
+                `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
+            );
             renderAll();
         }
 
         function updateEmi(idx, field, value) {
-            tracker.emiPayments[idx][field] = (field === 'youPaid' || field === 'companyPaid') ? value : value;
+            const payment = tracker.emiPayments[idx];
+            const oldValue = payment[field];
+            payment[field] = (field === 'youPaid' || field === 'companyPaid') ? value : value;
+            if (field === 'youPaid') {
+                payment.paidDate = value ? (payment.paidDate || getTodayISO()) : '';
+            }
+            if (field === 'companyPaid') {
+                payment.verifiedDate = value ? (payment.verifiedDate || getTodayISO()) : '';
+            }
+            addActivity(
+                `M${idx + 1} EMI ${field} updated`,
+                `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
+            );
+            renderAll();
+        }
+
+        function renderActivityLog() {
+            const log = document.getElementById('activityLog');
+            if (!log) return;
+            const entries = Array.isArray(tracker.activityLog) ? tracker.activityLog.slice(0, 30) : [];
+            if (!entries.length) {
+                log.innerHTML = '<div class="activity-item"><div class="activity-title">No changes logged yet</div><div class="activity-meta">Updates will appear here after edits.</div></div>';
+                return;
+            }
+            log.innerHTML = entries.map((entry) => `
+                <div class="activity-item">
+                    <div class="activity-title">${escapeHtml(entry.title)}</div>
+                    <div class="activity-meta">${escapeHtml(entry.details || '')}</div>
+                    <div class="activity-meta">${escapeHtml(entry.by || 'User')} • ${escapeHtml(formatDateTime(entry.at))}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderSecurityInfo() {
+            const userName = document.getElementById('userName');
+            const trackerKey = document.getElementById('trackerKey');
+            const trackerPathInfo = document.getElementById('trackerPathInfo');
+            if (userName && document.activeElement !== userName) userName.value = currentUserName;
+            if (trackerKey && document.activeElement !== trackerKey) trackerKey.value = currentTrackerKey === DEFAULT_TRACKER_KEY ? '' : currentTrackerKey;
+            if (trackerPathInfo) {
+                const mode = currentTrackerKey === DEFAULT_TRACKER_KEY
+                    ? 'Using the original shared tracker path. Generate a secret key to move future sync to a harder-to-guess path.'
+                    : `Using secret tracker path: ${getTrackerPath()}. Share this URL with trusted people: ${window.location.origin}${window.location.pathname}?tracker=${currentTrackerKey}`;
+                trackerPathInfo.textContent = mode;
+            }
+        }
+
+        function updateUserName(value) {
+            currentUserName = String(value || '').trim() || 'User';
+            localStorage.setItem(USER_NAME_STORAGE_KEY, currentUserName);
+            tracker.userName = currentUserName;
+            addActivity('User name updated', currentUserName);
+            renderAll();
+            saveData();
+        }
+
+        function updateTrackerKey(value) {
+            const nextKey = sanitizeTrackerKey(value) || DEFAULT_TRACKER_KEY;
+            if (nextKey === currentTrackerKey) {
+                renderSecurityInfo();
+                return;
+            }
+            currentTrackerKey = nextKey;
+            localStorage.setItem(TRACKER_KEY_STORAGE_KEY, currentTrackerKey);
+            addActivity('Tracker key changed', getTrackerPath());
+            renderAll();
+            saveData();
+        }
+
+        function generateTrackerKey() {
+            const key = `tracker_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            updateTrackerKey(key);
+        }
+
+        function resetAutoAdjustments() {
+            tracker.companyPayments.forEach((payment) => {
+                if (payment.autoAdjustedFrom !== undefined) {
+                    payment.amount = DEFAULT_COMPANY_PAYMENT;
+                    delete payment.autoAdjustedFrom;
+                }
+                if (payment.autoCompletedFrom !== undefined) {
+                    payment.companySent = false;
+                    payment.youReceived = false;
+                    payment.sentDate = '';
+                    payment.receivedDate = '';
+                    delete payment.autoCompletedFrom;
+                }
+                delete payment.advanceAppliedValue;
+            });
+            applyPendingAdvances();
+            addActivity('Advances recalculated', 'Auto-adjusted rows were reset and rebuilt from current advances.');
+            renderAll();
+            saveData();
         }
 
         function toggleExtend() {
@@ -851,6 +1207,7 @@
             const btn = document.getElementById('extendButton');
             btn.classList.toggle('active');
             btn.textContent = tracker.extend4Years ? '✓ 4 Years Active' : 'Enable 4 Years';
+            addActivity('Duration toggled', tracker.extend4Years ? '48 months enabled' : '36 months active');
             saveData();
         }
 
@@ -869,6 +1226,66 @@
             a.href = url;
             a.download = `tracker-backup-${tracker.createdDate}.json`;
             a.click();
+        }
+
+        function csvEscape(value) {
+            const text = String(value ?? '');
+            return `"${text.replace(/"/g, '""')}"`;
+        }
+
+        function exportCSV() {
+            const months = tracker.extend4Years ? 48 : 36;
+            const rows = [[
+                'Type',
+                'Month',
+                'Status',
+                'Amount',
+                'Advance',
+                'Sent/Paid',
+                'Sent/Paid Date',
+                'Received/Verified',
+                'Received/Verified Date',
+                'Comments',
+            ]];
+
+            tracker.companyPayments.slice(0, months).forEach((payment) => {
+                rows.push([
+                    'Company',
+                    payment.month,
+                    getCompanyStatus(payment).label,
+                    getPaymentAmount(payment),
+                    payment.advance || 0,
+                    payment.companySent ? 'Yes' : 'No',
+                    payment.sentDate || '',
+                    payment.youReceived ? 'Yes' : 'No',
+                    payment.receivedDate || '',
+                    payment.comments || '',
+                ]);
+            });
+
+            tracker.emiPayments.slice(0, months).forEach((payment) => {
+                rows.push([
+                    'EMI',
+                    payment.month,
+                    getEmiStatus(payment).label,
+                    payment.amount || 13650,
+                    '',
+                    payment.youPaid ? 'Yes' : 'No',
+                    payment.paidDate || '',
+                    payment.companyPaid ? 'Yes' : 'No',
+                    payment.verifiedDate || '',
+                    payment.comments || '',
+                ]);
+            });
+
+            const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tracker-export-${tracker.createdDate}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function toggleDarkMode() {

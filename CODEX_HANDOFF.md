@@ -23,8 +23,9 @@ It is meant to be simple enough for a non-technical company representative to op
 
 - Dashboard shows received amount, company progress, EMI paid, and EMI progress.
 - Payments tab supports Amount, Advance, Sent, Received, and Comments.
-- EMI tab supports Paid, Verified, and Comments.
-- More tab includes JSON export and agreement details.
+- Payments tab also shows status, sent date, received date, and advance explanation labels.
+- EMI tab supports Paid, Verified, Paid Date, Verified Date, Comments, and status.
+- More tab includes JSON export, CSV export, agreement details, activity log, user name, optional secret tracker key, and recalculation.
 - Dark mode preference is stored in browser storage.
 - Firebase sync keeps both parties on the same tracker data.
 - Navigation is now near the top and sticky for quicker switching.
@@ -116,20 +117,27 @@ There may be additional commits with similar messages around the advance reset f
 
 Firebase rules are currently public for `/tracker`. That is convenient but not secure for long-term use.
 
-Recommended next security improvement:
+Implemented mitigation:
+
+- The app now supports an optional secret tracker key using `?tracker=<secret-key>`.
+- The original `/tracker` path still works by default so existing data is not broken.
+- A generated key stores data under `trackers/<secret-key>`, which is harder to guess but is not a full auth system.
+
+Recommended stronger security improvement:
 
 - Use Firebase Anonymous Auth, or
-- Use a secret hard-to-guess tracker ID path, or
 - Add simple role links such as owner/company URLs with separate permissions.
 
-## Suggested Next Improvements
+## Suggested Next Improvements Status
 
-- Add visible "Advance applied to M4/M5" labels so future adjustments are transparent.
-- Add a small activity log: who changed what and when.
-- Add "Reset auto adjustments" button for troubleshooting.
-- Add monthly due dates and overdue highlighting.
-- Export CSV as well as JSON for easier spreadsheet/tax use.
-- Add basic password or Firebase Auth before sharing widely.
+- Done: visible advance explanation labels.
+- Done: activity log with who/what/when.
+- Done: "Recalculate Advances" button.
+- Done: CSV export.
+- Done: payment date fields for company and EMI tracking.
+- Done: monthly status badges.
+- Still recommended: due dates and overdue highlighting.
+- Still recommended: Firebase Auth or role-based links before sharing widely.
 
 ## Operational Notes
 
