@@ -743,10 +743,8 @@
                 const coveredAmount = Math.min(remainingAdvance, DEFAULT_COMPANY_PAYMENT);
                 const adjustedAmount = DEFAULT_COMPANY_PAYMENT - coveredAmount;
 
-                if (!futurePayment.amountManuallyEdited || futurePayment.autoAdjustedFrom === idx) {
-                    futurePayment.amount = adjustedAmount;
-                    futurePayment.autoAdjustedFrom = idx;
-                }
+                futurePayment.amount = adjustedAmount;
+                futurePayment.autoAdjustedFrom = idx;
 
                 if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
                     futurePayment.companySent = true;
@@ -841,6 +839,7 @@
             } else {
                 tracker.companyPayments[idx][field] = value;
             }
+            renderAll();
         }
 
         function updateEmi(idx, field, value) {
