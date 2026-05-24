@@ -716,8 +716,25 @@
             return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
         }
 
+        function clearAdvanceEffects(idx) {
+            tracker.companyPayments.forEach((payment) => {
+                if (payment.autoAdjustedFrom === idx) {
+                    payment.amount = DEFAULT_COMPANY_PAYMENT;
+                    delete payment.autoAdjustedFrom;
+                }
+
+                if (payment.autoCompletedFrom === idx) {
+                    payment.companySent = false;
+                    payment.youReceived = false;
+                    delete payment.autoCompletedFrom;
+                }
+            });
+        }
+
         function applyAdvancePayment(idx) {
             const sourcePayment = tracker.companyPayments[idx];
+            clearAdvanceEffects(idx);
+
             let remainingAdvance = parseInt(sourcePayment.advance) || 0;
             sourcePayment.advanceAppliedValue = remainingAdvance;
 
@@ -744,7 +761,7 @@
         function applyPendingAdvances() {
             tracker.companyPayments.forEach((payment, idx) => {
                 const advance = parseInt(payment.advance) || 0;
-                if (advance > 0 && payment.advanceAppliedValue !== advance) {
+                if (payment.advanceAppliedValue !== advance) {
                     applyAdvancePayment(idx);
                 }
             });
@@ -813,12 +830,14 @@
                 tracker.companyPayments[idx][field] = parseInt(value) || 0;
                 if (field === 'amount') {
                     tracker.companyPayments[idx].amountManuallyEdited = true;
+                    delete tracker.companyPayments[idx].autoAdjustedFrom;
                 }
                 if (field === 'advance') {
                     applyAdvancePayment(idx);
                 }
             } else if (field === 'companySent' || field === 'youReceived') {
                 tracker.companyPayments[idx][field] = value;
+                delete tracker.companyPayments[idx].autoCompletedFrom;
             } else {
                 tracker.companyPayments[idx][field] = value;
             }
