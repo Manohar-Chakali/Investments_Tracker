@@ -1,6 +1,6 @@
 # Investment Tracker Handoff
 
-Last updated: 2026-05-24
+Last updated: 2026-05-25
 
 ## Project
 
@@ -16,6 +16,7 @@ The app tracks a Rs. 5,00,000 investment/payment agreement with two parallel str
 
 - Company payment tracking: Rs. 15,000 per month, with Sent and Received acknowledgements.
 - EMI tracking: Rs. 13,650 per month, with Paid and Verified acknowledgements.
+- Both schedules start in July 2026. Internally the app still stores month numbers 1-48, but the UI shows actual periods such as Jul 2026, Aug 2026, etc.
 
 It is meant to be simple enough for a non-technical company representative to open a link, tick boxes, and add comments without accounts or setup.
 
@@ -30,6 +31,8 @@ It is meant to be simple enough for a non-technical company representative to op
 - Firebase sync keeps both parties on the same tracker data.
 - Navigation is now near the top and sticky for quicker switching.
 - Amount and Advance inputs are wide enough to show full values like `15000`.
+- Payment and EMI rows use real month labels starting from Jul 2026 instead of generic M1/M2 labels.
+- CSV export includes both the numeric month index and the readable period label.
 
 ## Important Advance Payment Logic
 
@@ -37,11 +40,11 @@ The advance logic is now reversible.
 
 Examples:
 
-- M3 advance Rs. 5,000 -> M4 amount becomes Rs. 10,000.
-- M3 advance cleared to Rs. 0 -> M4 amount returns to Rs. 15,000.
-- M3 advance Rs. 15,000 -> M4 amount becomes Rs. 0 and M4 Sent/Received are checked.
-- M3 advance Rs. 30,000 -> M4 and M5 become Rs. 0 and both rows are checked.
-- Reducing Rs. 30,000 back to Rs. 5,000 resets M5 and leaves M4 at Rs. 10,000.
+- Sep 2026 advance Rs. 5,000 -> Oct 2026 amount becomes Rs. 10,000.
+- Sep 2026 advance cleared to Rs. 0 -> Oct 2026 amount returns to Rs. 15,000.
+- Sep 2026 advance Rs. 15,000 -> Oct 2026 amount becomes Rs. 0 and Oct 2026 Sent/Received are checked.
+- Sep 2026 advance Rs. 30,000 -> Oct 2026 and Nov 2026 become Rs. 0 and both rows are checked.
+- Reducing Rs. 30,000 back to Rs. 5,000 resets Nov 2026 and leaves Oct 2026 at Rs. 10,000.
 
 Manual user edits win:
 
@@ -136,6 +139,7 @@ Recommended stronger security improvement:
 - Done: CSV export.
 - Done: payment date fields for company and EMI tracking.
 - Done: monthly status badges.
+- Done: actual month labels from Jul 2026 onward, while preserving existing Firebase data.
 - Still recommended: due dates and overdue highlighting.
 - Still recommended: Firebase Auth or role-based links before sharing widely.
 

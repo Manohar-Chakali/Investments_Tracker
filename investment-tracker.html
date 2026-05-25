@@ -337,6 +337,21 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .period-cell {
+            min-width: 116px;
+            font-weight: 800;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+
+        .period-index {
+            display: block;
+            margin-top: 3px;
+            color: var(--text-tertiary);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
         .comments-input {
             min-width: 220px;
         }
@@ -592,7 +607,7 @@
                 <table id="companyTable">
                     <thead>
                         <tr>
-                            <th style="width: 64px;">M</th>
+                            <th style="width: 116px;">Period</th>
                             <th style="width: 140px;">Status</th>
                             <th style="width: 150px;">Amount</th>
                             <th style="width: 160px;">Advance</th>
@@ -614,7 +629,7 @@
                 <table id="emiTable">
                     <thead>
                         <tr>
-                            <th style="width: 64px;">M</th>
+                            <th style="width: 116px;">Period</th>
                             <th style="width: 140px;">Status</th>
                             <th style="width: 150px;">Amount</th>
                             <th style="width: 84px; text-align: center;">Paid</th>
@@ -675,6 +690,9 @@
                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.5rem;">
                     <strong>Monthly Payment:</strong> Rs. 15,000
                 </p>
+                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                    <strong>Payment Start:</strong> July 2026
+                </p>
                 <p style="font-size: 13px; color: var(--text-secondary);">
                     <strong>EMI Obligation:</strong> Rs. 13,650/month
                 </p>
@@ -709,8 +727,14 @@
         const db = firebase.database();
         const DEFAULT_COMPANY_PAYMENT = 15000;
         const DEFAULT_TRACKER_KEY = 'tracker';
+        const DEFAULT_PAYMENT_START_MONTH = '2026-07';
         const USER_NAME_STORAGE_KEY = 'investmentTrackerUserName';
         const TRACKER_KEY_STORAGE_KEY = 'investmentTrackerKey';
+        const MONTH_FORMATTER = new Intl.DateTimeFormat('en-IN', {
+            month: 'short',
+            year: 'numeric',
+            timeZone: 'UTC',
+        });
 
         let currentUserName = localStorage.getItem(USER_NAME_STORAGE_KEY) || 'User';
         let currentTrackerKey = getInitialTrackerKey();
@@ -720,6 +744,7 @@
             userName: currentUserName,
             activityLog: [],
             createdDate: new Date().toISOString().split('T')[0],
+            paymentStartMonth: DEFAULT_PAYMENT_START_MONTH,
             companyPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
                 amount: DEFAULT_COMPANY_PAYMENT,
@@ -767,6 +792,25 @@
 
         function getTodayISO() {
             return new Date().toISOString().split('T')[0];
+        }
+
+        function getPaymentStartMonth() {
+            return /^\d{4}-\d{2}$/.test(tracker.paymentStartMonth || '')
+                ? tracker.paymentStartMonth
+                : DEFAULT_PAYMENT_START_MONTH;
+        }
+
+        function getPaymentDate(monthIndex) {
+            const [year, month] = getPaymentStartMonth().split('-').map(Number);
+            return new Date(Date.UTC(year, month - 1 + monthIndex, 1));
+        }
+
+        function getMonthLabel(monthIndex) {
+            return MONTH_FORMATTER.format(getPaymentDate(monthIndex));
+        }
+
+        function getMonthRangeLabel(months) {
+            return `${getMonthLabel(0)} to ${getMonthLabel(months - 1)}`;
         }
 
         function formatDateTime(value) {
@@ -891,13 +935,15 @@
             }));
             tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
             tracker.userName = tracker.userName || currentUserName;
+            tracker.paymentStartMonth = getPaymentStartMonth();
         }
 
         function updateDuration() {
             const months = tracker.extend4Years ? 48 : 36;
-            document.getElementById('duration').textContent = `${months} months`;
-            document.getElementById('companyTitle').textContent = `Company Payments (${months} months)`;
-            document.getElementById('emiTitle').textContent = `EMI Tracking (${months} months @ Rs. 13,650)`;
+            const range = getMonthRangeLabel(months);
+            document.getElementById('duration').textContent = `${months} months, ${range}`;
+            document.getElementById('companyTitle').textContent = `Company Payments (${range})`;
+            document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. 13,650)`;
         }
 
         function updateMetrics() {
@@ -946,11 +992,11 @@
 
         function getAdvanceNote(payment) {
             if (payment.autoCompletedFrom !== undefined) {
-                return `Covered by M${Number(payment.autoCompletedFrom) + 1} advance`;
+                return `Covered by ${getMonthLabel(Number(payment.autoCompletedFrom))} advance`;
             }
             if (payment.autoAdjustedFrom !== undefined && getPaymentAmount(payment) < DEFAULT_COMPANY_PAYMENT) {
                 const reduction = DEFAULT_COMPANY_PAYMENT - getPaymentAmount(payment);
-                return `Reduced Rs. ${reduction.toLocaleString('en-IN')} by M${Number(payment.autoAdjustedFrom) + 1} advance`;
+                return `Reduced Rs. ${reduction.toLocaleString('en-IN')} by ${getMonthLabel(Number(payment.autoAdjustedFrom))} advance`;
             }
             return '';
         }
@@ -1032,10 +1078,10 @@
                 const row = document.createElement('tr');
                 if (isComplete) row.classList.add('complete');
 
-                const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">M${i + 2}: ${nextMonthAdjust.toLocaleString('en-IN')}</div>` : '';
+                const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">${getMonthLabel(i + 1)}: ${nextMonthAdjust.toLocaleString('en-IN')}</div>` : '';
 
                 row.innerHTML = `
-                    <td style="font-weight: 500;">M${i + 1}</td>
+                    <td class="period-cell">${getMonthLabel(i)}<span class="period-index">Month ${i + 1}</span></td>
                     <td><span class="status-badge ${status.className}">${status.label}</span>${advanceNote ? `<span class="auto-note">${advanceNote}</span>` : ''}</td>
                     <td><input class="money-input" type="number" value="${getPaymentAmount(p)}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
                     <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
@@ -1062,7 +1108,7 @@
                 if (isComplete) row.classList.add('complete');
 
                 row.innerHTML = `
-                    <td style="font-weight: 500;">M${i + 1}</td>
+                    <td class="period-cell">${getMonthLabel(i)}<span class="period-index">Month ${i + 1}</span></td>
                     <td><span class="status-badge ${status.className}">${status.label}</span></td>
                     <td><strong>Rs. 13,650</strong></td>
                     <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
@@ -1100,7 +1146,7 @@
                 payment[field] = value;
             }
             addActivity(
-                `M${idx + 1} company ${field} updated`,
+                `${getMonthLabel(idx)} company ${field} updated`,
                 `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
             );
             renderAll();
@@ -1117,7 +1163,7 @@
                 payment.verifiedDate = value ? (payment.verifiedDate || getTodayISO()) : '';
             }
             addActivity(
-                `M${idx + 1} EMI ${field} updated`,
+                `${getMonthLabel(idx)} EMI ${field} updated`,
                 `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
             );
             renderAll();
@@ -1237,7 +1283,8 @@
             const months = tracker.extend4Years ? 48 : 36;
             const rows = [[
                 'Type',
-                'Month',
+                'Month #',
+                'Period',
                 'Status',
                 'Amount',
                 'Advance',
@@ -1252,6 +1299,7 @@
                 rows.push([
                     'Company',
                     payment.month,
+                    getMonthLabel(payment.month - 1),
                     getCompanyStatus(payment).label,
                     getPaymentAmount(payment),
                     payment.advance || 0,
@@ -1267,6 +1315,7 @@
                 rows.push([
                     'EMI',
                     payment.month,
+                    getMonthLabel(payment.month - 1),
                     getEmiStatus(payment).label,
                     payment.amount || 13650,
                     '',
