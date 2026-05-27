@@ -26,6 +26,7 @@
             --accent-amber: #f59e0b;
             --accent-blue: #2563eb;
             --accent-indigo: #4f46e5;
+            --accent-red: #ef4444;
             --shadow-soft: 0 18px 45px rgba(20, 34, 66, 0.08);
         }
 
@@ -117,7 +118,7 @@
         }
 
         .sync-status.error {
-            color: #ef4444;
+            color: var(--accent-red);
         }
 
         @keyframes pulse {
@@ -317,6 +318,17 @@
             background: rgba(16, 185, 129, 0.08);
         }
 
+        tbody tr.summary-row {
+            background: var(--bg-tertiary);
+            font-weight: 700;
+            border-top: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        tbody tr.summary-row td {
+            padding: 12px;
+        }
+
         input[type="number"],
         input[type="text"],
         input[type="email"],
@@ -404,6 +416,21 @@
         .status-pending {
             background: var(--bg-tertiary);
             color: var(--text-secondary);
+        }
+
+        .status-due {
+            background: rgba(245, 158, 11, 0.14);
+            color: var(--accent-amber);
+        }
+
+        .status-overdue {
+            background: rgba(239, 68, 68, 0.14);
+            color: var(--accent-red);
+        }
+
+        .status-upcoming {
+            background: rgba(37, 99, 235, 0.13);
+            color: var(--accent-blue);
         }
 
         .auto-note {
@@ -825,6 +852,26 @@
             }
         }
 
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString('en-IN');
+        }
+
+        function getDueStatus(monthIndex) {
+            const today = new Date();
+            const paymentDate = getPaymentDate(monthIndex);
+            const firstDayOfMonth = new Date(Date.UTC(paymentDate.getUTCFullYear(), paymentDate.getUTCMonth(), 1));
+            const lastDayOfMonth = new Date(Date.UTC(paymentDate.getUTCFullYear(), paymentDate.getUTCMonth() + 1, 0));
+            
+            if (today > lastDayOfMonth) {
+                return 'overdue';
+            } else if (today >= firstDayOfMonth) {
+                return 'due';
+            } else if (today < firstDayOfMonth) {
+                return 'upcoming';
+            }
+            return null;
+        }
+
         function addActivity(title, details = '') {
             tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
             tracker.activityLog.unshift({
@@ -943,23 +990,23 @@
             const range = getMonthRangeLabel(months);
             document.getElementById('duration').textContent = `${months} months, ${range}`;
             document.getElementById('companyTitle').textContent = `Company Payments (${range})`;
-            document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. 13,650)`;
+            document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. ${formatCurrency(13650)})`;
         }
 
         function updateMetrics() {
             const months = tracker.extend4Years ? 48 : 36;
-            const companyTotal = tracker.companyPayments.slice(0, months).reduce((sum, p) => sum + (p.amount || 0), 0);
-            const companyReceived = tracker.companyPayments.slice(0, months).filter(p => p.youReceived).reduce((sum, p) => sum + (p.amount || 0), 0);
+            const companyTotal = tracker.companyPayments.slice(0, months).reduce((sum, p) => sum + (Number.isFinite(Number(p.amount)) ? Number(p.amount) : 0), 0);
+            const companyReceived = tracker.companyPayments.slice(0, months).filter(p => p.youReceived).reduce((sum, p) => sum + (Number.isFinite(Number(p.amount)) ? Number(p.amount) : 0), 0);
             const emiTotal = tracker.emiPayments.slice(0, months).reduce((sum, p) => sum + (p.amount || 0), 0);
             const emiPaid = tracker.emiPayments.slice(0, months).filter(p => p.youPaid).reduce((sum, p) => sum + (p.amount || 0), 0);
             const companyComplete = tracker.companyPayments.slice(0, months).filter(p => p.companySent && p.youReceived).length;
             const emiComplete = tracker.emiPayments.slice(0, months).filter(p => p.youPaid && p.companyPaid).length;
 
-            document.getElementById('companyReceived').textContent = `Rs. ${companyReceived.toLocaleString('en-IN')}`;
-            document.getElementById('companyTotal').textContent = `of Rs. ${companyTotal.toLocaleString('en-IN')}`;
+            document.getElementById('companyReceived').textContent = `Rs. ${formatCurrency(companyReceived)}`;
+            document.getElementById('companyTotal').textContent = `of Rs. ${formatCurrency(companyTotal)}`;
             document.getElementById('companyProgress').textContent = `${companyComplete}/${months}`;
-            document.getElementById('emiPaid').textContent = `Rs. ${emiPaid.toLocaleString('en-IN')}`;
-            document.getElementById('emiTotal').textContent = `of Rs. ${emiTotal.toLocaleString('en-IN')}`;
+            document.getElementById('emiPaid').textContent = `Rs. ${formatCurrency(emiPaid)}`;
+            document.getElementById('emiTotal').textContent = `of Rs. ${formatCurrency(emiTotal)}`;
             document.getElementById('emiProgress').textContent = `${emiComplete}/${months}`;
         }
 
@@ -972,7 +1019,9 @@
             return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
         }
 
-        function getCompanyStatus(payment) {
+        function getCompanyStatus(payment, monthIndex) {
+            const dueStatus = getDueStatus(monthIndex);
+            
             if (payment.companySent && payment.youReceived) {
                 return payment.autoCompletedFrom !== undefined
                     ? { label: 'Advance covered', className: 'status-covered' }
@@ -981,12 +1030,38 @@
             if (payment.companySent || payment.youReceived || getPaymentAmount(payment) < DEFAULT_COMPANY_PAYMENT) {
                 return { label: 'Partial', className: 'status-partial' };
             }
+            
+            // Due date highlighting
+            if (dueStatus === 'overdue') {
+                return { label: 'Overdue', className: 'status-overdue' };
+            }
+            if (dueStatus === 'due') {
+                return { label: 'Due This Month', className: 'status-due' };
+            }
+            if (dueStatus === 'upcoming') {
+                return { label: 'Upcoming', className: 'status-upcoming' };
+            }
+            
             return { label: 'Pending', className: 'status-pending' };
         }
 
-        function getEmiStatus(payment) {
+        function getEmiStatus(payment, monthIndex) {
+            const dueStatus = getDueStatus(monthIndex);
+            
             if (payment.youPaid && payment.companyPaid) return { label: 'Complete', className: 'status-complete' };
             if (payment.youPaid || payment.companyPaid) return { label: 'Partial', className: 'status-partial' };
+            
+            // Due date highlighting
+            if (dueStatus === 'overdue') {
+                return { label: 'Overdue', className: 'status-overdue' };
+            }
+            if (dueStatus === 'due') {
+                return { label: 'Due This Month', className: 'status-due' };
+            }
+            if (dueStatus === 'upcoming') {
+                return { label: 'Upcoming', className: 'status-upcoming' };
+            }
+            
             return { label: 'Pending', className: 'status-pending' };
         }
 
@@ -996,361 +1071,408 @@
             }
             if (payment.autoAdjustedFrom !== undefined && getPaymentAmount(payment) < DEFAULT_COMPANY_PAYMENT) {
                 const reduction = DEFAULT_COMPANY_PAYMENT - getPaymentAmount(payment);
-                return `Reduced Rs. ${reduction.toLocaleString('en-IN')} by ${getMonthLabel(Number(payment.autoAdjustedFrom))} advance`;
+                return `Reduced Rs. ${formatCurrency(reduction)} by ${getMonthLabel(Number(payment.autoAdjustedFrom))} advance`;
             }
             return '';
         }
 
-        function clearAdvanceEffects(idx) {
-            tracker.companyPayments.forEach((payment) => {
-                if (payment.autoAdjustedFrom === idx) {
-                    payment.amount = DEFAULT_COMPANY_PAYMENT;
-                    delete payment.autoAdjustedFrom;
-                }
-
-                if (payment.autoCompletedFrom === idx) {
-                    payment.companySent = false;
-                    payment.youReceived = false;
-                    payment.sentDate = '';
-                    payment.receivedDate = '';
-                    delete payment.autoCompletedFrom;
-                }
-            });
-        }
-
-        function applyAdvancePayment(idx) {
-            const sourcePayment = tracker.companyPayments[idx];
-            clearAdvanceEffects(idx);
-
-            let remainingAdvance = parseInt(sourcePayment.advance) || 0;
-            sourcePayment.advanceAppliedValue = remainingAdvance;
-
-            for (let i = idx + 1; i < tracker.companyPayments.length && remainingAdvance > 0; i++) {
-                const futurePayment = tracker.companyPayments[i];
-                const coveredAmount = Math.min(remainingAdvance, DEFAULT_COMPANY_PAYMENT);
-                const adjustedAmount = DEFAULT_COMPANY_PAYMENT - coveredAmount;
-
-                futurePayment.amount = adjustedAmount;
-                futurePayment.autoAdjustedFrom = idx;
-
-                if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
-                    futurePayment.companySent = true;
-                    futurePayment.youReceived = true;
-                    futurePayment.sentDate = futurePayment.sentDate || getTodayISO();
-                    futurePayment.receivedDate = futurePayment.receivedDate || getTodayISO();
-                    futurePayment.autoCompletedFrom = idx;
-                }
-
-                remainingAdvance -= coveredAmount;
-            }
-        }
-
-        function applyPendingAdvances() {
-            tracker.companyPayments.forEach((payment, idx) => {
-                const advance = parseInt(payment.advance) || 0;
-                if (payment.advanceAppliedValue !== advance) {
-                    applyAdvancePayment(idx);
-                }
-            });
-        }
-
-        function escapeHtml(value) {
-            return String(value || '').replace(/[&<>"']/g, (char) => ({
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#39;',
-            }[char]));
-        }
-
         function renderCompanyTable() {
-            const months = tracker.extend4Years ? 48 : 36;
             const tbody = document.getElementById('companyBody');
+            const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
 
+            const monthSummaries = {};
+            
             for (let i = 0; i < months; i++) {
-                const p = tracker.companyPayments[i];
-                const isComplete = p.companySent && p.youReceived;
-                const status = getCompanyStatus(p);
-                const advanceNote = getAdvanceNote(p);
-                const nextMonthAdjust = getAdjustedAmount(p);
-                const row = document.createElement('tr');
-                if (isComplete) row.classList.add('complete');
+                const payment = tracker.companyPayments[i];
+                const monthLabel = getMonthLabel(i);
+                const monthKey = monthLabel.split(' ')[1]; // Extract year-month for grouping
+                
+                if (!monthSummaries[monthKey]) {
+                    monthSummaries[monthKey] = { expected: 0, received: 0, rows: [] };
+                }
+                
+                const status = getCompanyStatus(payment, i);
+                const advanceNote = getAdvanceNote(payment);
+                const amount = getPaymentAmount(payment);
+                
+                monthSummaries[monthKey].expected += amount;
+                if (payment.youReceived) {
+                    monthSummaries[monthKey].received += amount;
+                }
 
-                const nextMonthInfo = i < months - 1 ? `<div class="advance-field-label">${getMonthLabel(i + 1)}: ${nextMonthAdjust.toLocaleString('en-IN')}</div>` : '';
-
-                row.innerHTML = `
-                    <td class="period-cell">${getMonthLabel(i)}<span class="period-index">Month ${i + 1}</span></td>
-                    <td><span class="status-badge ${status.className}">${status.label}</span>${advanceNote ? `<span class="auto-note">${advanceNote}</span>` : ''}</td>
-                    <td><input class="money-input" type="number" value="${getPaymentAmount(p)}" onchange="updateCompany(${i}, 'amount', this.value); saveData();"></td>
-                    <td><input class="money-input" type="number" placeholder="0" value="${p.advance || 0}" onchange="updateCompany(${i}, 'advance', this.value); saveData();">${nextMonthInfo}</td>
-                    <td style="text-align: center;"><input type="checkbox" ${p.companySent ? 'checked' : ''} onchange="updateCompany(${i}, 'companySent', this.checked); saveData();"></td>
-                    <td><input class="date-input" type="date" value="${p.sentDate || ''}" onchange="updateCompany(${i}, 'sentDate', this.value); saveData();"></td>
-                    <td style="text-align: center;"><input type="checkbox" ${p.youReceived ? 'checked' : ''} onchange="updateCompany(${i}, 'youReceived', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input class="date-input" type="date" value="${p.receivedDate || ''}" onchange="updateCompany(${i}, 'receivedDate', this.value); saveData();"></td>
-                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateCompany(${i}, 'comments', this.value); saveData();"></td>
+                const row = `
+                    <tr class="${payment.youReceived ? 'complete' : ''}">
+                        <td class="period-cell">
+                            ${monthLabel}
+                            <span class="period-index">M${i + 1}</span>
+                        </td>
+                        <td><span class="status-badge ${status.className}">${status.label}</span></td>
+                        <td><input type="number" class="money-input" value="${amount}" onchange="updateCompanyAmount(${i}, this.value)"></td>
+                        <td><input type="number" class="money-input" value="${payment.advance || 0}" onchange="updateCompanyAdvance(${i}, this.value)">
+                            ${advanceNote ? `<span class="auto-note">${advanceNote}</span>` : ''}
+                        </td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" ${payment.companySent ? 'checked' : ''} onchange="updateCompanySent(${i}, this.checked)">
+                            ${payment.companySent ? '<span class="complete-check">✓</span>' : ''}
+                        </td>
+                        <td><input type="date" class="date-input" value="${payment.sentDate}" onchange="updateCompanySentDate(${i}, this.value)"></td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" ${payment.youReceived ? 'checked' : ''} onchange="updateCompanyReceived(${i}, this.checked)">
+                            ${payment.youReceived ? '<span class="complete-check">✓</span>' : ''}
+                        </td>
+                        <td><input type="date" class="date-input" value="${payment.receivedDate}" onchange="updateCompanyReceivedDate(${i}, this.value)"></td>
+                        <td><input type="text" class="comments-input" value="${payment.comments || ''}" onchange="updateCompanyComment(${i}, this.value)" placeholder="Notes..."></td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
+                
+                tbody.innerHTML += row;
+                monthSummaries[monthKey].rows.push(i);
+            }
+
+            // Add monthly summary rows (Feature 2)
+            let monthlyHTML = '';
+            let monthlyIndex = 0;
+            const monthKeys = Object.keys(monthSummaries).sort();
+            for (const monthKey of monthKeys) {
+                const summary = monthSummaries[monthKey];
+                const pct = summary.expected > 0 ? Math.round((summary.received / summary.expected) * 100) : 0;
+                monthlyHTML += `
+                    <tr class="summary-row">
+                        <td colspan="9" style="text-align: center; font-size: 12px;">
+                            <strong>${monthKey} Summary:</strong> 
+                            Expected Rs. ${formatCurrency(summary.expected)} | 
+                            Received Rs. ${formatCurrency(summary.received)} | 
+                            Progress ${pct}%
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            if (monthlyHTML) {
+                tbody.innerHTML += monthlyHTML;
             }
         }
 
         function renderEmiTable() {
-            const months = tracker.extend4Years ? 48 : 36;
             const tbody = document.getElementById('emiBody');
+            const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
 
+            const monthSummaries = {};
+
             for (let i = 0; i < months; i++) {
-                const p = tracker.emiPayments[i];
-                const isComplete = p.youPaid && p.companyPaid;
-                const status = getEmiStatus(p);
-                const row = document.createElement('tr');
-                if (isComplete) row.classList.add('complete');
+                const payment = tracker.emiPayments[i];
+                const monthLabel = getMonthLabel(i);
+                const monthKey = monthLabel.split(' ')[1]; // Extract year-month for grouping
+                
+                if (!monthSummaries[monthKey]) {
+                    monthSummaries[monthKey] = { expected: 0, paid: 0, verified: 0, rows: [] };
+                }
+                
+                const status = getEmiStatus(payment, i);
+                const amount = payment.amount || 13650;
+                
+                monthSummaries[monthKey].expected += amount;
+                if (payment.youPaid) {
+                    monthSummaries[monthKey].paid += amount;
+                }
+                if (payment.companyPaid) {
+                    monthSummaries[monthKey].verified += amount;
+                }
 
-                row.innerHTML = `
-                    <td class="period-cell">${getMonthLabel(i)}<span class="period-index">Month ${i + 1}</span></td>
-                    <td><span class="status-badge ${status.className}">${status.label}</span></td>
-                    <td><strong>Rs. 13,650</strong></td>
-                    <td style="text-align: center;"><input type="checkbox" ${p.youPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'youPaid', this.checked); saveData();"></td>
-                    <td><input class="date-input" type="date" value="${p.paidDate || ''}" onchange="updateEmi(${i}, 'paidDate', this.value); saveData();"></td>
-                    <td style="text-align: center;"><input type="checkbox" ${p.companyPaid ? 'checked' : ''} onchange="updateEmi(${i}, 'companyPaid', this.checked); saveData();">${isComplete ? '<span class="complete-check">✓</span>' : ''}</td>
-                    <td><input class="date-input" type="date" value="${p.verifiedDate || ''}" onchange="updateEmi(${i}, 'verifiedDate', this.value); saveData();"></td>
-                    <td><input class="comments-input" type="text" placeholder="Notes..." value="${escapeHtml(p.comments)}" onchange="updateEmi(${i}, 'comments', this.value); saveData();"></td>
+                const row = `
+                    <tr class="${payment.youPaid && payment.companyPaid ? 'complete' : ''}">
+                        <td class="period-cell">
+                            ${monthLabel}
+                            <span class="period-index">M${i + 1}</span>
+                        </td>
+                        <td><span class="status-badge ${status.className}">${status.label}</span></td>
+                        <td><input type="number" class="money-input" value="${amount}" onchange="updateEmiAmount(${i}, this.value)"></td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" ${payment.youPaid ? 'checked' : ''} onchange="updateEmiPaid(${i}, this.checked)">
+                            ${payment.youPaid ? '<span class="complete-check">✓</span>' : ''}
+                        </td>
+                        <td><input type="date" class="date-input" value="${payment.paidDate}" onchange="updateEmiPaidDate(${i}, this.value)"></td>
+                        <td style="text-align: center;">
+                            <input type="checkbox" ${payment.companyPaid ? 'checked' : ''} onchange="updateEmiVerified(${i}, this.checked)">
+                            ${payment.companyPaid ? '<span class="complete-check">✓</span>' : ''}
+                        </td>
+                        <td><input type="date" class="date-input" value="${payment.verifiedDate}" onchange="updateEmiVerifiedDate(${i}, this.value)"></td>
+                        <td><input type="text" class="comments-input" value="${payment.comments || ''}" onchange="updateEmiComment(${i}, this.value)" placeholder="Notes..."></td>
+                    </tr>
                 `;
-                tbody.appendChild(row);
+                
+                tbody.innerHTML += row;
+                monthSummaries[monthKey].rows.push(i);
             }
-        }
 
-        function updateCompany(idx, field, value) {
-            const payment = tracker.companyPayments[idx];
-            const oldValue = payment[field];
-            if (field === 'amount' || field === 'advance') {
-                payment[field] = parseInt(value) || 0;
-                if (field === 'amount') {
-                    payment.amountManuallyEdited = true;
-                    delete payment.autoAdjustedFrom;
-                }
-                if (field === 'advance') {
-                    applyAdvancePayment(idx);
-                }
-            } else if (field === 'companySent' || field === 'youReceived') {
-                payment[field] = value;
-                if (field === 'companySent') {
-                    payment.sentDate = value ? (payment.sentDate || getTodayISO()) : '';
-                }
-                if (field === 'youReceived') {
-                    payment.receivedDate = value ? (payment.receivedDate || getTodayISO()) : '';
-                }
-                delete payment.autoCompletedFrom;
-            } else {
-                payment[field] = value;
+            // Add monthly summary rows (Feature 2)
+            let monthlyHTML = '';
+            const monthKeys = Object.keys(monthSummaries).sort();
+            for (const monthKey of monthKeys) {
+                const summary = monthSummaries[monthKey];
+                const paidPct = summary.expected > 0 ? Math.round((summary.paid / summary.expected) * 100) : 0;
+                const verifiedPct = summary.expected > 0 ? Math.round((summary.verified / summary.expected) * 100) : 0;
+                monthlyHTML += `
+                    <tr class="summary-row">
+                        <td colspan="8" style="text-align: center; font-size: 12px;">
+                            <strong>${monthKey} Summary:</strong> 
+                            Due Rs. ${formatCurrency(summary.expected)} | 
+                            Paid Rs. ${formatCurrency(summary.paid)} (${paidPct}%) | 
+                            Verified Rs. ${formatCurrency(summary.verified)} (${verifiedPct}%)
+                        </td>
+                    </tr>
+                `;
             }
-            addActivity(
-                `${getMonthLabel(idx)} company ${field} updated`,
-                `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
-            );
-            renderAll();
-        }
-
-        function updateEmi(idx, field, value) {
-            const payment = tracker.emiPayments[idx];
-            const oldValue = payment[field];
-            payment[field] = (field === 'youPaid' || field === 'companyPaid') ? value : value;
-            if (field === 'youPaid') {
-                payment.paidDate = value ? (payment.paidDate || getTodayISO()) : '';
+            
+            if (monthlyHTML) {
+                tbody.innerHTML += monthlyHTML;
             }
-            if (field === 'companyPaid') {
-                payment.verifiedDate = value ? (payment.verifiedDate || getTodayISO()) : '';
-            }
-            addActivity(
-                `${getMonthLabel(idx)} EMI ${field} updated`,
-                `${oldValue === undefined || oldValue === '' ? 'empty' : oldValue} -> ${payment[field] === undefined || payment[field] === '' ? 'empty' : payment[field]}`
-            );
-            renderAll();
         }
 
         function renderActivityLog() {
-            const log = document.getElementById('activityLog');
-            if (!log) return;
-            const entries = Array.isArray(tracker.activityLog) ? tracker.activityLog.slice(0, 30) : [];
-            if (!entries.length) {
-                log.innerHTML = '<div class="activity-item"><div class="activity-title">No changes logged yet</div><div class="activity-meta">Updates will appear here after edits.</div></div>';
+            const activityLog = document.getElementById('activityLog');
+            activityLog.innerHTML = '';
+            const logs = tracker.activityLog || [];
+            
+            if (logs.length === 0) {
+                activityLog.innerHTML = '<div style="text-align: center; color: var(--text-secondary); font-size: 12px; padding: 1rem;">No activity recorded yet</div>';
                 return;
             }
-            log.innerHTML = entries.map((entry) => `
-                <div class="activity-item">
-                    <div class="activity-title">${escapeHtml(entry.title)}</div>
-                    <div class="activity-meta">${escapeHtml(entry.details || '')}</div>
-                    <div class="activity-meta">${escapeHtml(entry.by || 'User')} • ${escapeHtml(formatDateTime(entry.at))}</div>
-                </div>
-            `).join('');
+            
+            logs.slice(0, 50).forEach(log => {
+                const itemHTML = `
+                    <div class="activity-item">
+                        <div class="activity-title">${log.title}</div>
+                        <div class="activity-meta">By ${log.by} • ${formatDateTime(log.at)}</div>
+                        ${log.details ? `<div class="activity-meta">${log.details}</div>` : ''}
+                    </div>
+                `;
+                activityLog.innerHTML += itemHTML;
+            });
         }
 
         function renderSecurityInfo() {
-            const userName = document.getElementById('userName');
-            const trackerKey = document.getElementById('trackerKey');
-            const trackerPathInfo = document.getElementById('trackerPathInfo');
-            if (userName && document.activeElement !== userName) userName.value = currentUserName;
-            if (trackerKey && document.activeElement !== trackerKey) trackerKey.value = currentTrackerKey === DEFAULT_TRACKER_KEY ? '' : currentTrackerKey;
-            if (trackerPathInfo) {
-                const mode = currentTrackerKey === DEFAULT_TRACKER_KEY
-                    ? 'Using the original shared tracker path. Generate a secret key to move future sync to a harder-to-guess path.'
-                    : `Using secret tracker path: ${getTrackerPath()}. Share this URL with trusted people: ${window.location.origin}${window.location.pathname}?tracker=${currentTrackerKey}`;
-                trackerPathInfo.textContent = mode;
+            const path = getTrackerPath();
+            document.getElementById('trackerPathInfo').textContent = `Tracker stored at: ${path}`;
+            document.getElementById('userName').value = tracker.userName || '';
+            document.getElementById('trackerKey').value = currentTrackerKey;
+        }
+
+        function applyPendingAdvances() {
+            for (let i = 0; i < tracker.companyPayments.length - 1; i++) {
+                const current = tracker.companyPayments[i];
+                const advance = current.advance || 0;
+                
+                if (advance === 0) continue;
+
+                let remaining = advance;
+                for (let j = i + 1; j < tracker.companyPayments.length && remaining > 0; j++) {
+                    const next = tracker.companyPayments[j];
+                    const nextAmount = getPaymentAmount(next);
+                    
+                    if (nextAmount <= remaining) {
+                        remaining -= nextAmount;
+                        next.amount = 0;
+                        next.companySent = true;
+                        next.youReceived = true;
+                        next.autoCompletedFrom = i;
+                        delete next.autoAdjustedFrom;
+                    } else {
+                        next.amount = nextAmount - remaining;
+                        next.autoAdjustedFrom = i;
+                        delete next.autoCompletedFrom;
+                        remaining = 0;
+                    }
+                }
             }
         }
 
+        function updateCompanyAmount(index, value) {
+            const amount = Number(value) || 0;
+            tracker.companyPayments[index].amount = Math.max(0, amount);
+            delete tracker.companyPayments[index].autoAdjustedFrom;
+            delete tracker.companyPayments[index].autoCompletedFrom;
+            addActivity(`Updated company payment M${index + 1} amount to Rs. ${formatCurrency(amount)}`);
+            saveData();
+        }
+
+        function updateCompanyAdvance(index, value) {
+            const advance = Number(value) || 0;
+            tracker.companyPayments[index].advance = Math.max(0, advance);
+            addActivity(`Updated company payment M${index + 1} advance to Rs. ${formatCurrency(advance)}`);
+            saveData();
+        }
+
+        function updateCompanySent(index, checked) {
+            tracker.companyPayments[index].companySent = checked;
+            delete tracker.companyPayments[index].autoCompletedFrom;
+            addActivity(`Marked company payment M${index + 1} as ${checked ? 'sent' : 'not sent'}`);
+            saveData();
+        }
+
+        function updateCompanySentDate(index, value) {
+            tracker.companyPayments[index].sentDate = value;
+            saveData();
+        }
+
+        function updateCompanyReceived(index, checked) {
+            tracker.companyPayments[index].youReceived = checked;
+            delete tracker.companyPayments[index].autoCompletedFrom;
+            addActivity(`Marked company payment M${index + 1} as ${checked ? 'received' : 'not received'}`);
+            saveData();
+        }
+
+        function updateCompanyReceivedDate(index, value) {
+            tracker.companyPayments[index].receivedDate = value;
+            saveData();
+        }
+
+        function updateCompanyComment(index, value) {
+            tracker.companyPayments[index].comments = value;
+            saveData();
+        }
+
+        function updateEmiAmount(index, value) {
+            const amount = Number(value) || 0;
+            tracker.emiPayments[index].amount = Math.max(0, amount);
+            addActivity(`Updated EMI M${index + 1} amount to Rs. ${formatCurrency(amount)}`);
+            saveData();
+        }
+
+        function updateEmiPaid(index, checked) {
+            tracker.emiPayments[index].youPaid = checked;
+            addActivity(`Marked EMI M${index + 1} as ${checked ? 'paid' : 'not paid'}`);
+            saveData();
+        }
+
+        function updateEmiPaidDate(index, value) {
+            tracker.emiPayments[index].paidDate = value;
+            saveData();
+        }
+
+        function updateEmiVerified(index, checked) {
+            tracker.emiPayments[index].companyPaid = checked;
+            addActivity(`Marked EMI M${index + 1} as ${checked ? 'verified' : 'not verified'}`);
+            saveData();
+        }
+
+        function updateEmiVerifiedDate(index, value) {
+            tracker.emiPayments[index].verifiedDate = value;
+            saveData();
+        }
+
+        function updateEmiComment(index, value) {
+            tracker.emiPayments[index].comments = value;
+            saveData();
+        }
+
         function updateUserName(value) {
-            currentUserName = String(value || '').trim() || 'User';
-            localStorage.setItem(USER_NAME_STORAGE_KEY, currentUserName);
-            tracker.userName = currentUserName;
-            addActivity('User name updated', currentUserName);
-            renderAll();
+            currentUserName = value;
+            tracker.userName = value;
+            localStorage.setItem(USER_NAME_STORAGE_KEY, value);
+            addActivity(`Updated user name to ${value}`);
             saveData();
         }
 
         function updateTrackerKey(value) {
-            const nextKey = sanitizeTrackerKey(value) || DEFAULT_TRACKER_KEY;
-            if (nextKey === currentTrackerKey) {
-                renderSecurityInfo();
-                return;
+            const sanitized = sanitizeTrackerKey(value);
+            if (sanitized) {
+                currentTrackerKey = sanitized;
+                localStorage.setItem(TRACKER_KEY_STORAGE_KEY, sanitized);
+                addActivity(`Updated tracker key to ${sanitized}`);
+                setTimeout(() => {
+                    window.location.href = `?tracker=${sanitized}`;
+                }, 500);
             }
-            currentTrackerKey = nextKey;
-            localStorage.setItem(TRACKER_KEY_STORAGE_KEY, currentTrackerKey);
-            addActivity('Tracker key changed', getTrackerPath());
-            renderAll();
-            saveData();
         }
 
         function generateTrackerKey() {
-            const key = `tracker_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+            const key = 'tracker_' + Math.random().toString(36).substr(2, 9);
+            document.getElementById('trackerKey').value = key;
             updateTrackerKey(key);
-        }
-
-        function resetAutoAdjustments() {
-            tracker.companyPayments.forEach((payment) => {
-                if (payment.autoAdjustedFrom !== undefined) {
-                    payment.amount = DEFAULT_COMPANY_PAYMENT;
-                    delete payment.autoAdjustedFrom;
-                }
-                if (payment.autoCompletedFrom !== undefined) {
-                    payment.companySent = false;
-                    payment.youReceived = false;
-                    payment.sentDate = '';
-                    payment.receivedDate = '';
-                    delete payment.autoCompletedFrom;
-                }
-                delete payment.advanceAppliedValue;
-            });
-            applyPendingAdvances();
-            addActivity('Advances recalculated', 'Auto-adjusted rows were reset and rebuilt from current advances.');
-            renderAll();
-            saveData();
         }
 
         function toggleExtend() {
             tracker.extend4Years = !tracker.extend4Years;
-            const btn = document.getElementById('extendButton');
-            btn.classList.toggle('active');
-            btn.textContent = tracker.extend4Years ? '✓ 4 Years Active' : 'Enable 4 Years';
-            addActivity('Duration toggled', tracker.extend4Years ? '48 months enabled' : '36 months active');
+            const button = document.getElementById('extendButton');
+            if (tracker.extend4Years) {
+                button.textContent = 'Disable 4 Years';
+                button.classList.add('active');
+                addActivity('Enabled 4-year extension (48 months)');
+            } else {
+                button.textContent = 'Enable 4 Years';
+                button.classList.remove('active');
+                addActivity('Disabled 4-year extension (36 months)');
+            }
             saveData();
         }
 
-        function switchTab(tabId, button) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            button.classList.add('active');
+        function resetAutoAdjustments() {
+            tracker.companyPayments.forEach((p, idx) => {
+                delete p.autoAdjustedFrom;
+                delete p.autoCompletedFrom;
+            });
+            addActivity('Recalculated advance payments');
+            saveData();
         }
 
         function exportJSON() {
-            const json = JSON.stringify(tracker, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `tracker-backup-${tracker.createdDate}.json`;
-            a.click();
-        }
-
-        function csvEscape(value) {
-            const text = String(value ?? '');
-            return `"${text.replace(/"/g, '""')}"`;
+            const dataStr = JSON.stringify(tracker, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `investment-tracker-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            addActivity('Exported JSON backup');
+            saveData();
         }
 
         function exportCSV() {
+            let csv = 'Period,Status,Amount,Advance,Sent,Sent Date,Received,Received Date,Comments,EMI Amount,EMI Paid,EMI Paid Date,EMI Verified,EMI Verified Date,EMI Comments\n';
+            
             const months = tracker.extend4Years ? 48 : 36;
-            const rows = [[
-                'Type',
-                'Month #',
-                'Period',
-                'Status',
-                'Amount',
-                'Advance',
-                'Sent/Paid',
-                'Sent/Paid Date',
-                'Received/Verified',
-                'Received/Verified Date',
-                'Comments',
-            ]];
+            for (let i = 0; i < months; i++) {
+                const company = tracker.companyPayments[i];
+                const emi = tracker.emiPayments[i];
+                const monthLabel = getMonthLabel(i);
+                
+                csv += `"${monthLabel}","${company.companySent && company.youReceived ? 'Complete' : company.companySent || company.youReceived ? 'Partial' : 'Pending'}","${company.amount || DEFAULT_COMPANY_PAYMENT}","${company.advance || 0}","${company.companySent ? 'Yes' : 'No'}","${company.sentDate}","${company.youReceived ? 'Yes' : 'No'}","${company.receivedDate}","${(company.comments || '').replace(/"/g, '""')}","${emi.amount || 13650}","${emi.youPaid ? 'Yes' : 'No'}","${emi.paidDate}","${emi.companyPaid ? 'Yes' : 'No'}","${emi.verifiedDate}","${(emi.comments || '').replace(/"/g, '""')}"\n`;
+            }
+            
+            const dataBlob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `investment-tracker-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            addActivity('Exported CSV backup');
+            saveData();
+        }
 
-            tracker.companyPayments.slice(0, months).forEach((payment) => {
-                rows.push([
-                    'Company',
-                    payment.month,
-                    getMonthLabel(payment.month - 1),
-                    getCompanyStatus(payment).label,
-                    getPaymentAmount(payment),
-                    payment.advance || 0,
-                    payment.companySent ? 'Yes' : 'No',
-                    payment.sentDate || '',
-                    payment.youReceived ? 'Yes' : 'No',
-                    payment.receivedDate || '',
-                    payment.comments || '',
-                ]);
-            });
-
-            tracker.emiPayments.slice(0, months).forEach((payment) => {
-                rows.push([
-                    'EMI',
-                    payment.month,
-                    getMonthLabel(payment.month - 1),
-                    getEmiStatus(payment).label,
-                    payment.amount || 13650,
-                    '',
-                    payment.youPaid ? 'Yes' : 'No',
-                    payment.paidDate || '',
-                    payment.companyPaid ? 'Yes' : 'No',
-                    payment.verifiedDate || '',
-                    payment.comments || '',
-                ]);
-            });
-
-            const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `tracker-export-${tracker.createdDate}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+        function switchTab(tabName, button) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            button.classList.add('active');
         }
 
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
         }
 
+        // Load dark mode preference
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark-mode');
         }
 
-        // Start initialization when page loads
-        window.addEventListener('load', () => {
-            console.log('Page loaded, initializing Firebase...');
-            setTimeout(initializeTracker, 500);
-        });
+        // Initialize on page load
+        initializeTracker();
     </script>
 </body>
 </html>
