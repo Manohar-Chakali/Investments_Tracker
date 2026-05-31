@@ -174,6 +174,142 @@
             color: var(--text-secondary);
         }
 
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .insight-panel,
+        .plan-panel {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 14px 34px rgba(20, 34, 66, 0.07);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .panel-title h3 {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .panel-title span {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .progress-stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .progress-line {
+            display: grid;
+            grid-template-columns: 120px minmax(0, 1fr) 48px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .progress-track {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--bg-tertiary);
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+            transition: width 0.45s ease;
+        }
+
+        .progress-percent {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 800;
+            text-align: right;
+        }
+
+        .next-action {
+            margin-top: 1rem;
+            padding: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.09), rgba(16, 185, 129, 0.08));
+        }
+
+        .next-action strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 13px;
+        }
+
+        .next-action span {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .plan-item {
+            padding: 0.9rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .plan-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 22px rgba(20, 34, 66, 0.08);
+        }
+
+        .plan-item-title {
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 0.2rem;
+        }
+
+        .plan-item-range {
+            color: var(--text-tertiary);
+            font-size: 11px;
+            margin-bottom: 0.65rem;
+        }
+
+        .plan-item-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-top: 0.25rem;
+        }
+
         .controls-section {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.11), rgba(37, 99, 235, 0.08));
             padding: 1rem;
@@ -209,6 +345,13 @@
             font-size: 13px;
             font-weight: 700;
             transition: all 0.2s;
+        }
+
+        .button:hover,
+        .mode-toggle:hover,
+        .tab-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(20, 34, 66, 0.10);
         }
 
         .button.active {
@@ -552,6 +695,15 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .progress-line {
+                grid-template-columns: 92px minmax(0, 1fr) 42px;
+                gap: 8px;
+            }
+
             .metric-card {
                 padding: 0.85rem;
             }
@@ -612,6 +764,39 @@
                     <div class="metric-label">EMI Progress</div>
                     <div class="metric-value" id="emiProgress">0/36</div>
                     <div class="metric-subtext">paid</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="insight-panel">
+                    <div class="panel-title">
+                        <h3>Tracker Health</h3>
+                        <span id="paymentHealthText">Ready</span>
+                    </div>
+                    <div class="progress-stack">
+                        <div class="progress-line">
+                            <div class="progress-label">Company</div>
+                            <div class="progress-track"><div class="progress-fill" id="companyCompletionBar"></div></div>
+                            <div class="progress-percent" id="companyCompletionPct">0%</div>
+                        </div>
+                        <div class="progress-line">
+                            <div class="progress-label">EMI</div>
+                            <div class="progress-track"><div class="progress-fill" id="emiCompletionBar"></div></div>
+                            <div class="progress-percent" id="emiCompletionPct">0%</div>
+                        </div>
+                    </div>
+                    <div class="next-action">
+                        <strong id="nextDueTitle">Next action</strong>
+                        <span id="nextDueDetail">Loading payment schedule...</span>
+                    </div>
+                </div>
+
+                <div class="plan-panel">
+                    <div class="panel-title">
+                        <h3>Payment Plan</h3>
+                        <span id="planRangeLabel">Jul 2026</span>
+                    </div>
+                    <div class="plan-grid" id="planSummaryGrid"></div>
                 </div>
             </div>
 
@@ -1001,6 +1186,14 @@
             document.getElementById('duration').textContent = `${months} months, ${range}`;
             document.getElementById('companyTitle').textContent = `Company Payments (${range})`;
             document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. ${formatCurrency(13650)})`;
+            updateExtendControl();
+        }
+
+        function updateExtendControl() {
+            const button = document.getElementById('extendButton');
+            if (!button) return;
+            button.textContent = tracker.extend4Years ? 'Disable 4 Years' : 'Enable 4 Years';
+            button.classList.toggle('active', Boolean(tracker.extend4Years));
         }
 
         function updateMetrics() {
@@ -1018,6 +1211,91 @@
             document.getElementById('emiPaid').textContent = `Rs. ${formatCurrency(emiPaid)}`;
             document.getElementById('emiTotal').textContent = `of Rs. ${formatCurrency(emiTotal)}`;
             document.getElementById('emiProgress').textContent = `${emiComplete}/${months}`;
+            renderDashboardInsights({
+                months,
+                companyTotal,
+                companyReceived,
+                emiTotal,
+                emiPaid,
+                companyComplete,
+                emiComplete,
+            });
+        }
+
+        function setProgress(id, pct) {
+            const element = document.getElementById(id);
+            if (element) element.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+
+        function renderDashboardInsights(metrics) {
+            const companyPct = metrics.months ? Math.round((metrics.companyComplete / metrics.months) * 100) : 0;
+            const emiPct = metrics.months ? Math.round((metrics.emiComplete / metrics.months) * 100) : 0;
+            setProgress('companyCompletionBar', companyPct);
+            setProgress('emiCompletionBar', emiPct);
+
+            const companyCompletionPct = document.getElementById('companyCompletionPct');
+            const emiCompletionPct = document.getElementById('emiCompletionPct');
+            const paymentHealthText = document.getElementById('paymentHealthText');
+            const planRangeLabel = document.getElementById('planRangeLabel');
+            if (companyCompletionPct) companyCompletionPct.textContent = `${companyPct}%`;
+            if (emiCompletionPct) emiCompletionPct.textContent = `${emiPct}%`;
+            if (paymentHealthText) {
+                paymentHealthText.textContent = `${metrics.companyComplete + metrics.emiComplete}/${metrics.months * 2} checkpoints complete`;
+            }
+            if (planRangeLabel) {
+                planRangeLabel.textContent = getMonthRangeLabel(metrics.months);
+            }
+
+            renderNextAction(metrics.months);
+            renderPlanSummary(metrics.months);
+        }
+
+        function renderNextAction(months) {
+            const nextDueTitle = document.getElementById('nextDueTitle');
+            const nextDueDetail = document.getElementById('nextDueDetail');
+            if (!nextDueTitle || !nextDueDetail) return;
+
+            for (let i = 0; i < months; i++) {
+                const company = tracker.companyPayments[i];
+                const emi = tracker.emiPayments[i];
+                if (!(company.companySent && company.youReceived)) {
+                    nextDueTitle.textContent = `${getMonthLabel(i)} company payment`;
+                    nextDueDetail.textContent = `Expected Rs. ${formatCurrency(getPaymentAmount(company))}. Status: ${getCompanyStatus(company, i).label}.`;
+                    return;
+                }
+                if (!(emi.youPaid && emi.companyPaid)) {
+                    nextDueTitle.textContent = `${getMonthLabel(i)} EMI`;
+                    nextDueDetail.textContent = `Due Rs. ${formatCurrency(emi.amount || 13650)}. Status: ${getEmiStatus(emi, i).label}.`;
+                    return;
+                }
+            }
+
+            nextDueTitle.textContent = 'All tracked months complete';
+            nextDueDetail.textContent = 'Company payments and EMI confirmations are complete for the active duration.';
+        }
+
+        function renderPlanSummary(months) {
+            const grid = document.getElementById('planSummaryGrid');
+            if (!grid) return;
+
+            const years = Math.ceil(months / 12);
+            grid.innerHTML = '';
+            for (let year = 0; year < years; year++) {
+                const start = year * 12;
+                const end = Math.min(start + 12, months);
+                const companyExpected = tracker.companyPayments.slice(start, end).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+                const companyReceived = tracker.companyPayments.slice(start, end).filter(payment => payment.youReceived).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+                const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                const emiPaid = tracker.emiPayments.slice(start, end).filter(payment => payment.youPaid).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                grid.innerHTML += `
+                    <div class="plan-item">
+                        <div class="plan-item-title">Year ${year + 1}</div>
+                        <div class="plan-item-range">${getMonthLabel(start)} to ${getMonthLabel(end - 1)}</div>
+                        <div class="plan-item-row"><span>Company</span><strong>Rs. ${formatCurrency(companyReceived)} / ${formatCurrency(companyExpected)}</strong></div>
+                        <div class="plan-item-row"><span>EMI</span><strong>Rs. ${formatCurrency(emiPaid)} / ${formatCurrency(emiDue)}</strong></div>
+                    </div>
+                `;
+            }
         }
 
         function getAdjustedAmount(payment) {
@@ -1368,16 +1646,12 @@
 
         function toggleExtend() {
             tracker.extend4Years = !tracker.extend4Years;
-            const button = document.getElementById('extendButton');
             if (tracker.extend4Years) {
-                button.textContent = 'Disable 4 Years';
-                button.classList.add('active');
                 addActivity('Enabled 4-year extension (48 months)');
             } else {
-                button.textContent = 'Enable 4 Years';
-                button.classList.remove('active');
                 addActivity('Disabled 4-year extension (36 months)');
             }
+            renderAll();
             saveData();
         }
 

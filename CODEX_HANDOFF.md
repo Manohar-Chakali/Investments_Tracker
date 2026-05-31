@@ -23,6 +23,7 @@ It is meant to be simple enough for a non-technical company representative to op
 ## Current Behavior
 
 - Dashboard shows received amount, company progress, EMI paid, and EMI progress.
+- Dashboard also shows tracker health, next action, and a year-wise payment plan summary.
 - Payments tab supports Amount, Advance, Sent, Received, and Comments.
 - Payments tab also shows status, sent date, received date, and advance explanation labels.
 - EMI tab supports Paid, Verified, Paid Date, Verified Date, Comments, and status.
@@ -34,6 +35,7 @@ It is meant to be simple enough for a non-technical company representative to op
 - Payment and EMI rows use real month labels starting from Jul 2026 instead of generic M1/M2 labels.
 - CSV export includes both the numeric month index and the readable period label.
 - Due/upcoming status labels are shown against the actual month schedule.
+- The year-wise expected/received amounts are intentionally shown on the dashboard, not repeated below the Payments table.
 
 ## Important Advance Payment Logic
 
@@ -150,6 +152,7 @@ Recommended stronger security improvement:
 - Done: monthly status badges.
 - Done: actual month labels from Jul 2026 onward, while preserving existing Firebase data.
 - Done: due/upcoming labels based on the July 2026 start date.
+- Done: dashboard tracker health, next action, and year-wise payment plan summary.
 - Still recommended: Firebase Auth or role-based links before sharing widely.
 
 ## Operational Notes
