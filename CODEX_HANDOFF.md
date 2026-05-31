@@ -24,6 +24,7 @@ It is meant to be simple enough for a non-technical company representative to op
 
 - Dashboard shows received amount, company progress, EMI paid, and EMI progress.
 - Dashboard also shows tracker health, next action, and a year-wise payment plan summary.
+- Dashboard shows quarterly progress cards and an overdue count.
 - Payments tab supports Amount, Advance, Sent, Received, and Comments.
 - Payments tab also shows status, sent date, received date, and advance explanation labels.
 - EMI tab supports Paid, Verified, Paid Date, Verified Date, Comments, and status.
@@ -153,6 +154,7 @@ Recommended stronger security improvement:
 - Done: actual month labels from Jul 2026 onward, while preserving existing Firebase data.
 - Done: due/upcoming labels based on the July 2026 start date.
 - Done: dashboard tracker health, next action, and year-wise payment plan summary.
+- Done: quarterly progress and overdue count.
 - Still recommended: Firebase Auth or role-based links before sharing widely.
 
 ## Operational Notes
