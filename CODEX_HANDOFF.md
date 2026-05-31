@@ -1,6 +1,6 @@
 # Investment Tracker Handoff
 
-Last updated: 2026-05-25
+Last updated: 2026-05-31
 
 ## Project
 
@@ -33,6 +33,7 @@ It is meant to be simple enough for a non-technical company representative to op
 - Amount and Advance inputs are wide enough to show full values like `15000`.
 - Payment and EMI rows use real month labels starting from Jul 2026 instead of generic M1/M2 labels.
 - CSV export includes both the numeric month index and the readable period label.
+- Due/upcoming status labels are shown against the actual month schedule.
 
 ## Important Advance Payment Logic
 
@@ -50,6 +51,12 @@ Manual user edits win:
 
 - If a row amount is manually changed, old auto-advance ownership is removed.
 - If a checkbox is manually changed, old auto-complete ownership is removed.
+
+Regression note:
+
+- Do not recalculate advances by subtracting from the current next-row amount on every render. That compounds reductions and causes abnormal checkbox/status behavior.
+- The safe pattern is ownership-based: clear rows previously auto-adjusted by the changed advance, then rebuild only those rows from the Rs. 15,000 base amount.
+- Repeated `renderAll()` calls must not change totals.
 
 ## What Claude Missed
 
@@ -100,11 +107,13 @@ Commands/checks performed during the fixes:
 - GitHub Pages cache-busted URLs were checked after pushes.
 - Headless UI logic test verified:
   - Initial total: Rs. 5,40,000
-  - M3 advance Rs. 5,000 -> total Rs. 5,35,000 and M4 Rs. 10,000
-  - Clearing advance -> total Rs. 5,40,000 and M4 Rs. 15,000
-  - M3 advance Rs. 15,000 -> M4 Rs. 0 and checked
-  - M3 advance Rs. 30,000 -> M4 and M5 Rs. 0 and checked
-  - Reducing to Rs. 5,000 -> M4 Rs. 10,000, M5 Rs. 15,000, checkboxes reset
+  - Sep 2026 advance Rs. 5,000 -> total Rs. 5,35,000 and Oct 2026 Rs. 10,000
+  - Repeated renders after that stay at total Rs. 5,35,000
+  - Clearing advance -> total Rs. 5,40,000 and Oct 2026 Rs. 15,000
+  - Sep 2026 advance Rs. 15,000 -> Oct 2026 Rs. 0 and checked
+  - Sep 2026 advance Rs. 30,000 -> Oct 2026 and Nov 2026 Rs. 0 and checked
+  - Reducing to Rs. 5,000 -> Oct 2026 Rs. 10,000, Nov 2026 Rs. 15,000, checkboxes reset
+  - Manual uncheck after auto-cover remains unchecked after render
 
 ## Git Notes
 
@@ -140,7 +149,7 @@ Recommended stronger security improvement:
 - Done: payment date fields for company and EMI tracking.
 - Done: monthly status badges.
 - Done: actual month labels from Jul 2026 onward, while preserving existing Firebase data.
-- Still recommended: due dates and overdue highlighting.
+- Done: due/upcoming labels based on the July 2026 start date.
 - Still recommended: Firebase Auth or role-based links before sharing widely.
 
 ## Operational Notes

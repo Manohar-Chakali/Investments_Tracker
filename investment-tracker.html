@@ -856,6 +856,16 @@
             return Number(value || 0).toLocaleString('en-IN');
         }
 
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;',
+            }[char]));
+        }
+
         function getDueStatus(monthIndex) {
             const today = new Date();
             const paymentDate = getPaymentDate(monthIndex);
@@ -1081,31 +1091,18 @@
             const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
 
-            const monthSummaries = {};
-            
             for (let i = 0; i < months; i++) {
                 const payment = tracker.companyPayments[i];
                 const monthLabel = getMonthLabel(i);
-                const monthKey = monthLabel.split(' ')[1]; // Extract year-month for grouping
-                
-                if (!monthSummaries[monthKey]) {
-                    monthSummaries[monthKey] = { expected: 0, received: 0, rows: [] };
-                }
-                
                 const status = getCompanyStatus(payment, i);
                 const advanceNote = getAdvanceNote(payment);
                 const amount = getPaymentAmount(payment);
-                
-                monthSummaries[monthKey].expected += amount;
-                if (payment.youReceived) {
-                    monthSummaries[monthKey].received += amount;
-                }
 
                 const row = `
                     <tr class="${payment.youReceived ? 'complete' : ''}">
                         <td class="period-cell">
                             ${monthLabel}
-                            <span class="period-index">M${i + 1}</span>
+                            <span class="period-index">Month ${i + 1}</span>
                         </td>
                         <td><span class="status-badge ${status.className}">${status.label}</span></td>
                         <td><input type="number" class="money-input" value="${amount}" onchange="updateCompanyAmount(${i}, this.value)"></td>
@@ -1116,41 +1113,17 @@
                             <input type="checkbox" ${payment.companySent ? 'checked' : ''} onchange="updateCompanySent(${i}, this.checked)">
                             ${payment.companySent ? '<span class="complete-check">✓</span>' : ''}
                         </td>
-                        <td><input type="date" class="date-input" value="${payment.sentDate}" onchange="updateCompanySentDate(${i}, this.value)"></td>
+                        <td><input type="date" class="date-input" value="${payment.sentDate || ''}" onchange="updateCompanySentDate(${i}, this.value)"></td>
                         <td style="text-align: center;">
                             <input type="checkbox" ${payment.youReceived ? 'checked' : ''} onchange="updateCompanyReceived(${i}, this.checked)">
                             ${payment.youReceived ? '<span class="complete-check">✓</span>' : ''}
                         </td>
-                        <td><input type="date" class="date-input" value="${payment.receivedDate}" onchange="updateCompanyReceivedDate(${i}, this.value)"></td>
-                        <td><input type="text" class="comments-input" value="${payment.comments || ''}" onchange="updateCompanyComment(${i}, this.value)" placeholder="Notes..."></td>
+                        <td><input type="date" class="date-input" value="${payment.receivedDate || ''}" onchange="updateCompanyReceivedDate(${i}, this.value)"></td>
+                        <td><input type="text" class="comments-input" value="${escapeHtml(payment.comments)}" onchange="updateCompanyComment(${i}, this.value)" placeholder="Notes..."></td>
                     </tr>
                 `;
                 
                 tbody.innerHTML += row;
-                monthSummaries[monthKey].rows.push(i);
-            }
-
-            // Add monthly summary rows (Feature 2)
-            let monthlyHTML = '';
-            let monthlyIndex = 0;
-            const monthKeys = Object.keys(monthSummaries).sort();
-            for (const monthKey of monthKeys) {
-                const summary = monthSummaries[monthKey];
-                const pct = summary.expected > 0 ? Math.round((summary.received / summary.expected) * 100) : 0;
-                monthlyHTML += `
-                    <tr class="summary-row">
-                        <td colspan="9" style="text-align: center; font-size: 12px;">
-                            <strong>${monthKey} Summary:</strong> 
-                            Expected Rs. ${formatCurrency(summary.expected)} | 
-                            Received Rs. ${formatCurrency(summary.received)} | 
-                            Progress ${pct}%
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            if (monthlyHTML) {
-                tbody.innerHTML += monthlyHTML;
             }
         }
 
@@ -1159,33 +1132,17 @@
             const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
 
-            const monthSummaries = {};
-
             for (let i = 0; i < months; i++) {
                 const payment = tracker.emiPayments[i];
                 const monthLabel = getMonthLabel(i);
-                const monthKey = monthLabel.split(' ')[1]; // Extract year-month for grouping
-                
-                if (!monthSummaries[monthKey]) {
-                    monthSummaries[monthKey] = { expected: 0, paid: 0, verified: 0, rows: [] };
-                }
-                
                 const status = getEmiStatus(payment, i);
                 const amount = payment.amount || 13650;
-                
-                monthSummaries[monthKey].expected += amount;
-                if (payment.youPaid) {
-                    monthSummaries[monthKey].paid += amount;
-                }
-                if (payment.companyPaid) {
-                    monthSummaries[monthKey].verified += amount;
-                }
 
                 const row = `
                     <tr class="${payment.youPaid && payment.companyPaid ? 'complete' : ''}">
                         <td class="period-cell">
                             ${monthLabel}
-                            <span class="period-index">M${i + 1}</span>
+                            <span class="period-index">Month ${i + 1}</span>
                         </td>
                         <td><span class="status-badge ${status.className}">${status.label}</span></td>
                         <td><input type="number" class="money-input" value="${amount}" onchange="updateEmiAmount(${i}, this.value)"></td>
@@ -1193,41 +1150,17 @@
                             <input type="checkbox" ${payment.youPaid ? 'checked' : ''} onchange="updateEmiPaid(${i}, this.checked)">
                             ${payment.youPaid ? '<span class="complete-check">✓</span>' : ''}
                         </td>
-                        <td><input type="date" class="date-input" value="${payment.paidDate}" onchange="updateEmiPaidDate(${i}, this.value)"></td>
+                        <td><input type="date" class="date-input" value="${payment.paidDate || ''}" onchange="updateEmiPaidDate(${i}, this.value)"></td>
                         <td style="text-align: center;">
                             <input type="checkbox" ${payment.companyPaid ? 'checked' : ''} onchange="updateEmiVerified(${i}, this.checked)">
                             ${payment.companyPaid ? '<span class="complete-check">✓</span>' : ''}
                         </td>
-                        <td><input type="date" class="date-input" value="${payment.verifiedDate}" onchange="updateEmiVerifiedDate(${i}, this.value)"></td>
-                        <td><input type="text" class="comments-input" value="${payment.comments || ''}" onchange="updateEmiComment(${i}, this.value)" placeholder="Notes..."></td>
+                        <td><input type="date" class="date-input" value="${payment.verifiedDate || ''}" onchange="updateEmiVerifiedDate(${i}, this.value)"></td>
+                        <td><input type="text" class="comments-input" value="${escapeHtml(payment.comments)}" onchange="updateEmiComment(${i}, this.value)" placeholder="Notes..."></td>
                     </tr>
                 `;
                 
                 tbody.innerHTML += row;
-                monthSummaries[monthKey].rows.push(i);
-            }
-
-            // Add monthly summary rows (Feature 2)
-            let monthlyHTML = '';
-            const monthKeys = Object.keys(monthSummaries).sort();
-            for (const monthKey of monthKeys) {
-                const summary = monthSummaries[monthKey];
-                const paidPct = summary.expected > 0 ? Math.round((summary.paid / summary.expected) * 100) : 0;
-                const verifiedPct = summary.expected > 0 ? Math.round((summary.verified / summary.expected) * 100) : 0;
-                monthlyHTML += `
-                    <tr class="summary-row">
-                        <td colspan="8" style="text-align: center; font-size: 12px;">
-                            <strong>${monthKey} Summary:</strong> 
-                            Due Rs. ${formatCurrency(summary.expected)} | 
-                            Paid Rs. ${formatCurrency(summary.paid)} (${paidPct}%) | 
-                            Verified Rs. ${formatCurrency(summary.verified)} (${verifiedPct}%)
-                        </td>
-                    </tr>
-                `;
-            }
-            
-            if (monthlyHTML) {
-                tbody.innerHTML += monthlyHTML;
             }
         }
 
@@ -1244,9 +1177,9 @@
             logs.slice(0, 50).forEach(log => {
                 const itemHTML = `
                     <div class="activity-item">
-                        <div class="activity-title">${log.title}</div>
-                        <div class="activity-meta">By ${log.by} • ${formatDateTime(log.at)}</div>
-                        ${log.details ? `<div class="activity-meta">${log.details}</div>` : ''}
+                        <div class="activity-title">${escapeHtml(log.title)}</div>
+                        <div class="activity-meta">By ${escapeHtml(log.by || 'User')} - ${escapeHtml(formatDateTime(log.at))}</div>
+                        ${log.details ? `<div class="activity-meta">${escapeHtml(log.details)}</div>` : ''}
                     </div>
                 `;
                 activityLog.innerHTML += itemHTML;
@@ -1260,55 +1193,87 @@
             document.getElementById('trackerKey').value = currentTrackerKey;
         }
 
-        function applyPendingAdvances() {
-            for (let i = 0; i < tracker.companyPayments.length - 1; i++) {
-                const current = tracker.companyPayments[i];
-                const advance = current.advance || 0;
-                
-                if (advance === 0) continue;
-
-                let remaining = advance;
-                for (let j = i + 1; j < tracker.companyPayments.length && remaining > 0; j++) {
-                    const next = tracker.companyPayments[j];
-                    const nextAmount = getPaymentAmount(next);
-                    
-                    if (nextAmount <= remaining) {
-                        remaining -= nextAmount;
-                        next.amount = 0;
-                        next.companySent = true;
-                        next.youReceived = true;
-                        next.autoCompletedFrom = i;
-                        delete next.autoAdjustedFrom;
-                    } else {
-                        next.amount = nextAmount - remaining;
-                        next.autoAdjustedFrom = i;
-                        delete next.autoCompletedFrom;
-                        remaining = 0;
-                    }
+        function clearAdvanceEffects(index) {
+            tracker.companyPayments.forEach((payment) => {
+                if (payment.autoAdjustedFrom === index) {
+                    payment.amount = DEFAULT_COMPANY_PAYMENT;
+                    delete payment.autoAdjustedFrom;
                 }
+
+                if (payment.autoCompletedFrom === index) {
+                    payment.companySent = false;
+                    payment.youReceived = false;
+                    payment.sentDate = '';
+                    payment.receivedDate = '';
+                    delete payment.autoCompletedFrom;
+                }
+            });
+        }
+
+        function applyAdvancePayment(index) {
+            const sourcePayment = tracker.companyPayments[index];
+            clearAdvanceEffects(index);
+
+            let remainingAdvance = Math.max(0, parseInt(sourcePayment.advance, 10) || 0);
+            sourcePayment.advanceAppliedValue = remainingAdvance;
+
+            for (let i = index + 1; i < tracker.companyPayments.length && remainingAdvance > 0; i++) {
+                const futurePayment = tracker.companyPayments[i];
+                const coveredAmount = Math.min(remainingAdvance, DEFAULT_COMPANY_PAYMENT);
+                const adjustedAmount = DEFAULT_COMPANY_PAYMENT - coveredAmount;
+
+                futurePayment.amount = adjustedAmount;
+                futurePayment.autoAdjustedFrom = index;
+
+                if (coveredAmount >= DEFAULT_COMPANY_PAYMENT) {
+                    futurePayment.companySent = true;
+                    futurePayment.youReceived = true;
+                    futurePayment.sentDate = futurePayment.sentDate || getTodayISO();
+                    futurePayment.receivedDate = futurePayment.receivedDate || getTodayISO();
+                    futurePayment.autoCompletedFrom = index;
+                } else {
+                    delete futurePayment.autoCompletedFrom;
+                }
+
+                remainingAdvance -= coveredAmount;
             }
+        }
+
+        function applyPendingAdvances() {
+            tracker.companyPayments.forEach((payment, index) => {
+                const advance = Math.max(0, parseInt(payment.advance, 10) || 0);
+                if (payment.advanceAppliedValue !== advance) {
+                    applyAdvancePayment(index);
+                }
+            });
         }
 
         function updateCompanyAmount(index, value) {
             const amount = Number(value) || 0;
             tracker.companyPayments[index].amount = Math.max(0, amount);
+            tracker.companyPayments[index].amountManuallyEdited = true;
             delete tracker.companyPayments[index].autoAdjustedFrom;
             delete tracker.companyPayments[index].autoCompletedFrom;
-            addActivity(`Updated company payment M${index + 1} amount to Rs. ${formatCurrency(amount)}`);
+            addActivity(`Updated ${getMonthLabel(index)} company amount`, `Rs. ${formatCurrency(amount)}`);
+            renderAll();
             saveData();
         }
 
         function updateCompanyAdvance(index, value) {
             const advance = Number(value) || 0;
             tracker.companyPayments[index].advance = Math.max(0, advance);
-            addActivity(`Updated company payment M${index + 1} advance to Rs. ${formatCurrency(advance)}`);
+            applyAdvancePayment(index);
+            addActivity(`Updated ${getMonthLabel(index)} company advance`, `Rs. ${formatCurrency(advance)}`);
+            renderAll();
             saveData();
         }
 
         function updateCompanySent(index, checked) {
             tracker.companyPayments[index].companySent = checked;
+            tracker.companyPayments[index].sentDate = checked ? (tracker.companyPayments[index].sentDate || getTodayISO()) : '';
             delete tracker.companyPayments[index].autoCompletedFrom;
-            addActivity(`Marked company payment M${index + 1} as ${checked ? 'sent' : 'not sent'}`);
+            addActivity(`Marked ${getMonthLabel(index)} company payment as ${checked ? 'sent' : 'not sent'}`);
+            renderAll();
             saveData();
         }
 
@@ -1319,8 +1284,10 @@
 
         function updateCompanyReceived(index, checked) {
             tracker.companyPayments[index].youReceived = checked;
+            tracker.companyPayments[index].receivedDate = checked ? (tracker.companyPayments[index].receivedDate || getTodayISO()) : '';
             delete tracker.companyPayments[index].autoCompletedFrom;
-            addActivity(`Marked company payment M${index + 1} as ${checked ? 'received' : 'not received'}`);
+            addActivity(`Marked ${getMonthLabel(index)} company payment as ${checked ? 'received' : 'not received'}`);
+            renderAll();
             saveData();
         }
 
@@ -1337,13 +1304,16 @@
         function updateEmiAmount(index, value) {
             const amount = Number(value) || 0;
             tracker.emiPayments[index].amount = Math.max(0, amount);
-            addActivity(`Updated EMI M${index + 1} amount to Rs. ${formatCurrency(amount)}`);
+            addActivity(`Updated ${getMonthLabel(index)} EMI amount`, `Rs. ${formatCurrency(amount)}`);
+            renderAll();
             saveData();
         }
 
         function updateEmiPaid(index, checked) {
             tracker.emiPayments[index].youPaid = checked;
-            addActivity(`Marked EMI M${index + 1} as ${checked ? 'paid' : 'not paid'}`);
+            tracker.emiPayments[index].paidDate = checked ? (tracker.emiPayments[index].paidDate || getTodayISO()) : '';
+            addActivity(`Marked ${getMonthLabel(index)} EMI as ${checked ? 'paid' : 'not paid'}`);
+            renderAll();
             saveData();
         }
 
@@ -1354,7 +1324,9 @@
 
         function updateEmiVerified(index, checked) {
             tracker.emiPayments[index].companyPaid = checked;
-            addActivity(`Marked EMI M${index + 1} as ${checked ? 'verified' : 'not verified'}`);
+            tracker.emiPayments[index].verifiedDate = checked ? (tracker.emiPayments[index].verifiedDate || getTodayISO()) : '';
+            addActivity(`Marked ${getMonthLabel(index)} EMI as ${checked ? 'verified' : 'not verified'}`);
+            renderAll();
             saveData();
         }
 
@@ -1410,11 +1382,23 @@
         }
 
         function resetAutoAdjustments() {
-            tracker.companyPayments.forEach((p, idx) => {
-                delete p.autoAdjustedFrom;
-                delete p.autoCompletedFrom;
+            tracker.companyPayments.forEach((payment) => {
+                if (payment.autoAdjustedFrom !== undefined) {
+                    payment.amount = DEFAULT_COMPANY_PAYMENT;
+                    delete payment.autoAdjustedFrom;
+                }
+                if (payment.autoCompletedFrom !== undefined) {
+                    payment.companySent = false;
+                    payment.youReceived = false;
+                    payment.sentDate = '';
+                    payment.receivedDate = '';
+                    delete payment.autoCompletedFrom;
+                }
+                delete payment.advanceAppliedValue;
             });
-            addActivity('Recalculated advance payments');
+            applyPendingAdvances();
+            addActivity('Recalculated advance payments', 'Auto-adjusted rows were reset and rebuilt from current advances.');
+            renderAll();
             saveData();
         }
 
