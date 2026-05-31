@@ -24,7 +24,8 @@ It is meant to be simple enough for a non-technical company representative to op
 
 - Dashboard shows received amount, company progress, EMI paid, and EMI progress.
 - Dashboard also shows tracker health, next action, and a year-wise payment plan summary.
-- Dashboard shows quarterly progress cards and an overdue count.
+- Dashboard shows quarterly progress grouped into expandable year sections and an overdue count.
+- Dashboard expected company total stays fixed at Rs. 5,40,000 for the 36-month agreement; advances are treated as early cash received, not as a reduction to the agreement value.
 - Payments tab supports Amount, Advance, Sent, Received, and Comments.
 - Payments tab also shows status, sent date, received date, and advance explanation labels.
 - EMI tab supports Paid, Verified, Paid Date, Verified Date, Comments, and status.
@@ -33,6 +34,8 @@ It is meant to be simple enough for a non-technical company representative to op
 - Firebase sync keeps both parties on the same tracker data.
 - Navigation is now near the top and sticky for quicker switching.
 - Amount and Advance inputs are wide enough to show full values like `15000`.
+- The normal monthly Amount field is capped at Rs. 15,000 to prevent accidental extra-zero entries such as `150000`.
+- Existing saved rows above Rs. 15,000 are normalized back to Rs. 15,000 and surfaced in the dashboard Safety Checks panel.
 - Payment and EMI rows use real month labels starting from Jul 2026 instead of generic M1/M2 labels.
 - CSV export includes both the numeric month index and the readable period label.
 - Due/upcoming status labels are shown against the actual month schedule.
@@ -60,6 +63,8 @@ Regression note:
 - Do not recalculate advances by subtracting from the current next-row amount on every render. That compounds reductions and causes abnormal checkbox/status behavior.
 - The safe pattern is ownership-based: clear rows previously auto-adjusted by the changed advance, then rebuild only those rows from the Rs. 15,000 base amount.
 - Repeated `renderAll()` calls must not change totals.
+- Company received totals include a received row's Amount plus its Advance.
+- Company expected totals use the fixed Rs. 15,000/month agreement baseline, so a partial advance does not make the dashboard total drop to Rs. 5,35,000.
 
 ## What Claude Missed
 
@@ -110,13 +115,15 @@ Commands/checks performed during the fixes:
 - GitHub Pages cache-busted URLs were checked after pushes.
 - Headless UI logic test verified:
   - Initial total: Rs. 5,40,000
-  - Sep 2026 advance Rs. 5,000 -> total Rs. 5,35,000 and Oct 2026 Rs. 10,000
-  - Repeated renders after that stay at total Rs. 5,35,000
+  - Sep 2026 advance Rs. 5,000 -> dashboard total remains Rs. 5,40,000 and Oct 2026 becomes Rs. 10,000
+  - Repeated renders after that keep the same amount and total
   - Clearing advance -> total Rs. 5,40,000 and Oct 2026 Rs. 15,000
   - Sep 2026 advance Rs. 15,000 -> Oct 2026 Rs. 0 and checked
   - Sep 2026 advance Rs. 30,000 -> Oct 2026 and Nov 2026 Rs. 0 and checked
   - Reducing to Rs. 5,000 -> Oct 2026 Rs. 10,000, Nov 2026 Rs. 15,000, checkboxes reset
   - Manual uncheck after auto-cover remains unchecked after render
+  - Amount entry Rs. 1,50,000 is capped and saved as Rs. 15,000
+  - CSV export preserves advance-covered Rs. 0 rows instead of converting them back to Rs. 15,000
 
 ## Git Notes
 
@@ -155,6 +162,7 @@ Recommended stronger security improvement:
 - Done: due/upcoming labels based on the July 2026 start date.
 - Done: dashboard tracker health, next action, and year-wise payment plan summary.
 - Done: quarterly progress and overdue count.
+- Done: monthly amount cap, agreement total guard, and safety checks.
 - Still recommended: Firebase Auth or role-based links before sharing widely.
 
 ## Operational Notes

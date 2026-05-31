@@ -176,14 +176,15 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
             align-items: start;
             margin-bottom: 1.5rem;
         }
 
         .insight-panel,
-        .plan-panel {
+        .plan-panel,
+        .safety-panel {
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: 12px;
@@ -272,15 +273,56 @@
 
         .plan-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+            gap: 10px;
+        }
+
+        .plan-details {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+
+        .plan-details + .plan-details {
+            margin-top: 10px;
+        }
+
+        .plan-details summary {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.9rem 1rem;
+            cursor: pointer;
+            list-style: none;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .plan-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .plan-details summary::after {
+            content: '+';
+            color: var(--text-tertiary);
+            font-weight: 900;
+        }
+
+        .plan-details[open] summary::after {
+            content: '-';
+        }
+
+        .quarter-years {
+            display: grid;
             gap: 10px;
         }
 
         .quarter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 10px;
-            margin-top: 10px;
+            padding: 0 1rem 1rem;
         }
 
         .plan-item {
@@ -405,6 +447,36 @@
         .overdue-pill.has-overdue {
             color: var(--accent-red);
             background: rgba(239, 68, 68, 0.13);
+        }
+
+        .safety-panel {
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .safety-panel.active {
+            display: block;
+        }
+
+        .safety-list {
+            display: grid;
+            gap: 0.65rem;
+        }
+
+        .safety-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.8rem 0.9rem;
+            border-radius: 10px;
+            background: rgba(245, 158, 11, 0.12);
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .safety-item strong {
+            color: var(--accent-amber);
+            white-space: nowrap;
         }
 
         .controls-section {
@@ -775,6 +847,15 @@
             white-space: nowrap;
         }
 
+        .input-hint {
+            display: block;
+            margin-top: 6px;
+            color: var(--text-tertiary);
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
         @media (max-width: 680px) {
             .container {
                 padding: 0.75rem 0.75rem 1.5rem;
@@ -864,6 +945,14 @@
                 </div>
             </div>
 
+            <div class="safety-panel" id="safetyPanel">
+                <div class="panel-title">
+                    <h3>Safety Checks</h3>
+                    <span>Agreement guard</span>
+                </div>
+                <div class="safety-list" id="safetyList"></div>
+            </div>
+
             <div class="dashboard-grid">
                 <div class="insight-panel">
                     <div class="panel-title">
@@ -899,9 +988,9 @@
                     <div class="plan-grid" id="planSummaryGrid"></div>
                     <div class="panel-title" style="margin-top: 1rem;">
                         <h3>Quarterly Progress</h3>
-                        <span id="quarterRangeLabel">Active duration</span>
+                        <span id="quarterRangeLabel">Expand by year</span>
                     </div>
-                    <div class="quarter-grid" id="quarterSummaryGrid"></div>
+                    <div class="quarter-years" id="quarterSummaryGrid"></div>
                 </div>
             </div>
 
@@ -1043,6 +1132,8 @@
 
         const db = firebase.database();
         const DEFAULT_COMPANY_PAYMENT = 15000;
+        const AGREEMENT_MONTHS = 36;
+        const AGREEMENT_TOTAL_CAP = DEFAULT_COMPANY_PAYMENT * AGREEMENT_MONTHS;
         const DEFAULT_TRACKER_KEY = 'tracker';
         const DEFAULT_PAYMENT_START_MONTH = '2026-07';
         const USER_NAME_STORAGE_KEY = 'investmentTrackerUserName';
@@ -1144,6 +1235,15 @@
 
         function formatCurrency(value) {
             return Number(value || 0).toLocaleString('en-IN');
+        }
+
+        function parseMoney(value) {
+            const amount = Number(value);
+            return Number.isFinite(amount) ? Math.max(0, Math.round(amount)) : 0;
+        }
+
+        function clampCompanyAmount(value) {
+            return Math.min(DEFAULT_COMPANY_PAYMENT, parseMoney(value));
         }
 
         function escapeHtml(value) {
@@ -1280,6 +1380,17 @@
                 comments: '',
                 ...(tracker.emiPayments && tracker.emiPayments[i] ? tracker.emiPayments[i] : {}),
             }));
+            tracker.companyPayments.forEach((payment) => {
+                const originalAmount = parseMoney(payment.amount);
+                payment.amount = clampCompanyAmount(payment.amount);
+                if (originalAmount > DEFAULT_COMPANY_PAYMENT) {
+                    payment.amountCappedAt = DEFAULT_COMPANY_PAYMENT;
+                }
+                payment.advance = parseMoney(payment.advance);
+            });
+            tracker.emiPayments.forEach((payment) => {
+                payment.amount = parseMoney(payment.amount || 13650);
+            });
             tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
             tracker.userName = tracker.userName || currentUserName;
             tracker.paymentStartMonth = getPaymentStartMonth();
@@ -1301,10 +1412,25 @@
             button.classList.toggle('active', Boolean(tracker.extend4Years));
         }
 
+        function getCompanyCashValue(payment) {
+            return getPaymentAmount(payment) + parseMoney(payment.advance);
+        }
+
+        function getCompanyExpectedTotal(months) {
+            return DEFAULT_COMPANY_PAYMENT * months;
+        }
+
+        function getCompanyReceivedTotal(start, end) {
+            return tracker.companyPayments
+                .slice(start, end)
+                .filter(payment => payment.youReceived)
+                .reduce((sum, payment) => sum + getCompanyCashValue(payment), 0);
+        }
+
         function updateMetrics() {
             const months = tracker.extend4Years ? 48 : 36;
-            const companyTotal = tracker.companyPayments.slice(0, months).reduce((sum, p) => sum + (Number.isFinite(Number(p.amount)) ? Number(p.amount) : 0), 0);
-            const companyReceived = tracker.companyPayments.slice(0, months).filter(p => p.youReceived).reduce((sum, p) => sum + (Number.isFinite(Number(p.amount)) ? Number(p.amount) : 0), 0);
+            const companyTotal = getCompanyExpectedTotal(months);
+            const companyReceived = getCompanyReceivedTotal(0, months);
             const emiTotal = tracker.emiPayments.slice(0, months).reduce((sum, p) => sum + (p.amount || 0), 0);
             const emiPaid = tracker.emiPayments.slice(0, months).filter(p => p.youPaid).reduce((sum, p) => sum + (p.amount || 0), 0);
             const companyComplete = tracker.companyPayments.slice(0, months).filter(p => p.companySent && p.youReceived).length;
@@ -1325,11 +1451,53 @@
                 companyComplete,
                 emiComplete,
             });
+            renderSafetyChecks(months, companyReceived);
         }
 
         function setProgress(id, pct) {
             const element = document.getElementById(id);
             if (element) element.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+        }
+
+        function renderSafetyChecks(months, companyReceived) {
+            const panel = document.getElementById('safetyPanel');
+            const list = document.getElementById('safetyList');
+            if (!panel || !list) return;
+
+            const issues = [];
+            const first36Received = getCompanyReceivedTotal(0, AGREEMENT_MONTHS);
+            const cappedRows = tracker.companyPayments
+                .slice(0, months)
+                .filter(payment => payment.amountCappedAt);
+
+            if (first36Received > AGREEMENT_TOTAL_CAP) {
+                issues.push({
+                    title: '36-month cap exceeded',
+                    detail: `Received total is Rs. ${formatCurrency(first36Received)} against the fixed Rs. ${formatCurrency(AGREEMENT_TOTAL_CAP)} agreement.`,
+                });
+            }
+
+            if (cappedRows.length) {
+                issues.push({
+                    title: 'Amount corrected',
+                    detail: `${cappedRows.length} row${cappedRows.length > 1 ? 's were' : ' was'} capped at Rs. ${formatCurrency(DEFAULT_COMPANY_PAYMENT)} to prevent accidental extra zeros.`,
+                });
+            }
+
+            if (tracker.extend4Years) {
+                issues.push({
+                    title: '4-year extension on',
+                    detail: 'Months 37-48 are shown separately; the original 36-month legal cap remains Rs. 5,40,000.',
+                });
+            }
+
+            panel.classList.toggle('active', issues.length > 0);
+            list.innerHTML = issues.map(issue => `
+                <div class="safety-item">
+                    <span>${escapeHtml(issue.detail)}</span>
+                    <strong>${escapeHtml(issue.title)}</strong>
+                </div>
+            `).join('');
         }
 
         function renderDashboardInsights(metrics) {
@@ -1426,8 +1594,8 @@
             for (let year = 0; year < years; year++) {
                 const start = year * 12;
                 const end = Math.min(start + 12, months);
-                const companyExpected = tracker.companyPayments.slice(start, end).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
-                const companyReceived = tracker.companyPayments.slice(start, end).filter(payment => payment.youReceived).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
+                const companyExpected = DEFAULT_COMPANY_PAYMENT * (end - start);
+                const companyReceived = getCompanyReceivedTotal(start, end);
                 const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
                 const emiPaid = tracker.emiPayments.slice(start, end).filter(payment => payment.youPaid).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
                 grid.innerHTML += `
@@ -1468,28 +1636,42 @@
             const grid = document.getElementById('quarterSummaryGrid');
             if (!grid) return;
 
-            const quarters = Math.ceil(months / 3);
             grid.innerHTML = '';
-            for (let quarter = 0; quarter < quarters; quarter++) {
-                const start = quarter * 3;
-                const end = Math.min(start + 3, months);
-                const yearNumber = Math.floor(quarter / 4) + 1;
-                const quarterNumber = (quarter % 4) + 1;
-                const companyExpected = tracker.companyPayments.slice(start, end).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
-                const companyReceived = tracker.companyPayments.slice(start, end).filter(isCompanyComplete).reduce((sum, payment) => sum + getPaymentAmount(payment), 0);
-                const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
-                const emiPaid = tracker.emiPayments.slice(start, end).filter(isEmiComplete).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
-                const status = getQuarterStatus(start, end);
-                grid.innerHTML += `
-                    <div class="quarter-item ${status.className}">
-                        <div class="quarter-topline">
-                            <div class="quarter-title">Y${yearNumber} Q${quarterNumber}</div>
-                            <div class="quarter-status">${status.label}</div>
+            const years = Math.ceil(months / 12);
+            for (let year = 0; year < years; year++) {
+                const yearStart = year * 12;
+                const yearEnd = Math.min(yearStart + 12, months);
+                let quarterHtml = '';
+
+                for (let quarter = 0; quarter < 4 && yearStart + quarter * 3 < yearEnd; quarter++) {
+                    const start = yearStart + quarter * 3;
+                    const end = Math.min(start + 3, yearEnd);
+                    const companyExpected = DEFAULT_COMPANY_PAYMENT * (end - start);
+                    const companyReceived = getCompanyReceivedTotal(start, end);
+                    const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                    const emiPaid = tracker.emiPayments.slice(start, end).filter(isEmiComplete).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                    const status = getQuarterStatus(start, end);
+                    quarterHtml += `
+                        <div class="quarter-item ${status.className}">
+                            <div class="quarter-topline">
+                                <div class="quarter-title">Q${quarter + 1}</div>
+                                <div class="quarter-status">${status.label}</div>
+                            </div>
+                            <div class="quarter-range">${getMonthLabel(start)} to ${getMonthLabel(end - 1)}</div>
+                            <div class="quarter-row"><span>Company</span><strong>Rs. ${formatCurrency(companyReceived)} / ${formatCurrency(companyExpected)}</strong></div>
+                            <div class="quarter-row"><span>EMI</span><strong>Rs. ${formatCurrency(emiPaid)} / ${formatCurrency(emiDue)}</strong></div>
                         </div>
-                        <div class="quarter-range">${getMonthLabel(start)} to ${getMonthLabel(end - 1)}</div>
-                        <div class="quarter-row"><span>Company</span><strong>Rs. ${formatCurrency(companyReceived)} / ${formatCurrency(companyExpected)}</strong></div>
-                        <div class="quarter-row"><span>EMI</span><strong>Rs. ${formatCurrency(emiPaid)} / ${formatCurrency(emiDue)}</strong></div>
-                    </div>
+                    `;
+                }
+
+                grid.innerHTML += `
+                    <details class="plan-details" ${year === 0 ? 'open' : ''}>
+                        <summary>
+                            <span>Year ${year + 1}</span>
+                            <span>${getMonthLabel(yearStart)} to ${getMonthLabel(yearEnd - 1)}</span>
+                        </summary>
+                        <div class="quarter-grid">${quarterHtml}</div>
+                    </details>
                 `;
             }
         }
@@ -1500,7 +1682,7 @@
         }
 
         function getPaymentAmount(payment) {
-            return Number.isFinite(Number(payment.amount)) ? Number(payment.amount) : DEFAULT_COMPANY_PAYMENT;
+            return clampCompanyAmount(payment.amount);
         }
 
         function getCompanyStatus(payment, monthIndex) {
@@ -1579,8 +1761,10 @@
                             <span class="period-index">Month ${i + 1}</span>
                         </td>
                         <td><span class="status-badge ${status.className}">${status.label}</span></td>
-                        <td><input type="number" class="money-input" value="${amount}" onchange="updateCompanyAmount(${i}, this.value)"></td>
-                        <td><input type="number" class="money-input" value="${payment.advance || 0}" onchange="updateCompanyAdvance(${i}, this.value)">
+                        <td><input type="number" class="money-input" min="0" max="${DEFAULT_COMPANY_PAYMENT}" step="1" value="${amount}" onchange="updateCompanyAmount(${i}, this.value)">
+                            <span class="input-hint">${payment.amountCappedAt ? 'Corrected to cap' : `Max Rs. ${formatCurrency(DEFAULT_COMPANY_PAYMENT)}`}</span>
+                        </td>
+                        <td><input type="number" class="money-input" min="0" step="1" value="${payment.advance || 0}" onchange="updateCompanyAdvance(${i}, this.value)">
                             ${advanceNote ? `<span class="auto-note">${advanceNote}</span>` : ''}
                         </td>
                         <td style="text-align: center;">
@@ -1688,7 +1872,7 @@
             const sourcePayment = tracker.companyPayments[index];
             clearAdvanceEffects(index);
 
-            let remainingAdvance = Math.max(0, parseInt(sourcePayment.advance, 10) || 0);
+            let remainingAdvance = parseMoney(sourcePayment.advance);
             sourcePayment.advanceAppliedValue = remainingAdvance;
 
             for (let i = index + 1; i < tracker.companyPayments.length && remainingAdvance > 0; i++) {
@@ -1715,7 +1899,7 @@
 
         function applyPendingAdvances() {
             tracker.companyPayments.forEach((payment, index) => {
-                const advance = Math.max(0, parseInt(payment.advance, 10) || 0);
+                const advance = parseMoney(payment.advance);
                 if (payment.advanceAppliedValue !== advance) {
                     applyAdvancePayment(index);
                 }
@@ -1723,19 +1907,29 @@
         }
 
         function updateCompanyAmount(index, value) {
-            const amount = Number(value) || 0;
-            tracker.companyPayments[index].amount = Math.max(0, amount);
+            const requestedAmount = parseMoney(value);
+            const amount = clampCompanyAmount(requestedAmount);
+            tracker.companyPayments[index].amount = amount;
             tracker.companyPayments[index].amountManuallyEdited = true;
+            if (requestedAmount > DEFAULT_COMPANY_PAYMENT) {
+                tracker.companyPayments[index].amountCappedAt = DEFAULT_COMPANY_PAYMENT;
+                addActivity(
+                    `Capped ${getMonthLabel(index)} company amount`,
+                    `Entered Rs. ${formatCurrency(requestedAmount)}; saved Rs. ${formatCurrency(DEFAULT_COMPANY_PAYMENT)}.`
+                );
+            } else {
+                delete tracker.companyPayments[index].amountCappedAt;
+                addActivity(`Updated ${getMonthLabel(index)} company amount`, `Rs. ${formatCurrency(amount)}`);
+            }
             delete tracker.companyPayments[index].autoAdjustedFrom;
             delete tracker.companyPayments[index].autoCompletedFrom;
-            addActivity(`Updated ${getMonthLabel(index)} company amount`, `Rs. ${formatCurrency(amount)}`);
             renderAll();
             saveData();
         }
 
         function updateCompanyAdvance(index, value) {
-            const advance = Number(value) || 0;
-            tracker.companyPayments[index].advance = Math.max(0, advance);
+            const advance = parseMoney(value);
+            tracker.companyPayments[index].advance = advance;
             applyAdvancePayment(index);
             addActivity(`Updated ${getMonthLabel(index)} company advance`, `Rs. ${formatCurrency(advance)}`);
             renderAll();
@@ -1893,7 +2087,7 @@
                 const emi = tracker.emiPayments[i];
                 const monthLabel = getMonthLabel(i);
                 
-                csv += `"${monthLabel}","${company.companySent && company.youReceived ? 'Complete' : company.companySent || company.youReceived ? 'Partial' : 'Pending'}","${company.amount || DEFAULT_COMPANY_PAYMENT}","${company.advance || 0}","${company.companySent ? 'Yes' : 'No'}","${company.sentDate}","${company.youReceived ? 'Yes' : 'No'}","${company.receivedDate}","${(company.comments || '').replace(/"/g, '""')}","${emi.amount || 13650}","${emi.youPaid ? 'Yes' : 'No'}","${emi.paidDate}","${emi.companyPaid ? 'Yes' : 'No'}","${emi.verifiedDate}","${(emi.comments || '').replace(/"/g, '""')}"\n`;
+                csv += `"${monthLabel}","${company.companySent && company.youReceived ? 'Complete' : company.companySent || company.youReceived ? 'Partial' : 'Pending'}","${getPaymentAmount(company)}","${company.advance || 0}","${company.companySent ? 'Yes' : 'No'}","${company.sentDate}","${company.youReceived ? 'Yes' : 'No'}","${company.receivedDate}","${(company.comments || '').replace(/"/g, '""')}","${emi.amount || 13650}","${emi.youPaid ? 'Yes' : 'No'}","${emi.paidDate}","${emi.companyPaid ? 'Yes' : 'No'}","${emi.verifiedDate}","${(emi.comments || '').replace(/"/g, '""')}"\n`;
             }
             
             const dataBlob = new Blob([csv], { type: 'text/csv' });
