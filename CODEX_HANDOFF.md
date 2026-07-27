@@ -15,7 +15,8 @@ Last updated: 2026-05-31
 The app tracks a Rs. 5,00,000 investment/payment agreement with two parallel streams:
 
 - Company payment tracking: Rs. 15,000 per month, with Sent and Received acknowledgements.
-- EMI tracking: Rs. 13,650 per month, with Paid and Verified acknowledgements.
+- EMI tracking: Rs. 13,637 per month, with Paid and Verified acknowledgements.
+- Existing EMI rows saved with the old Rs. 13,650 default are migrated to Rs. 13,637 on render; other custom EMI values are preserved.
 - Both schedules start in July 2026. Internally the app still stores month numbers 1-48, but the UI shows actual periods such as Jul 2026, Aug 2026, etc.
 
 It is meant to be simple enough for a non-technical company representative to open a link, tick boxes, and add comments without accounts or setup.

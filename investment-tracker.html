@@ -1030,7 +1030,7 @@
         </div>
 
         <div id="emiTab" class="tab-content">
-            <h2 id="emiTitle">EMI Tracking (36 months @ Rs. 13,650)</h2>
+            <h2 id="emiTitle">EMI Tracking (36 months @ Rs. 13,637)</h2>
             <div class="table-wrapper">
                 <table id="emiTable">
                     <thead>
@@ -1100,7 +1100,7 @@
                     <strong>Payment Start:</strong> July 2026
                 </p>
                 <p style="font-size: 13px; color: var(--text-secondary);">
-                    <strong>EMI Obligation:</strong> Rs. 13,650/month
+                    <strong>EMI Obligation:</strong> Rs. 13,637/month
                 </p>
             </div>
         </div>
@@ -1132,6 +1132,8 @@
 
         const db = firebase.database();
         const DEFAULT_COMPANY_PAYMENT = 15000;
+        const DEFAULT_EMI_PAYMENT = 13637;
+        const LEGACY_EMI_PAYMENT = 13650;
         const AGREEMENT_MONTHS = 36;
         const AGREEMENT_TOTAL_CAP = DEFAULT_COMPANY_PAYMENT * AGREEMENT_MONTHS;
         const DEFAULT_TRACKER_KEY = 'tracker';
@@ -1165,7 +1167,7 @@
             })),
             emiPayments: Array(48).fill(null).map((_, i) => ({
                 month: i + 1,
-                amount: 13650,
+                amount: DEFAULT_EMI_PAYMENT,
                 youPaid: false,
                 paidDate: '',
                 companyPaid: false,
@@ -1372,7 +1374,7 @@
             }));
             tracker.emiPayments = Array.from({ length: 48 }, (_, i) => ({
                 month: i + 1,
-                amount: 13650,
+                amount: DEFAULT_EMI_PAYMENT,
                 youPaid: false,
                 paidDate: '',
                 companyPaid: false,
@@ -1389,7 +1391,8 @@
                 payment.advance = parseMoney(payment.advance);
             });
             tracker.emiPayments.forEach((payment) => {
-                payment.amount = parseMoney(payment.amount || 13650);
+                const amount = parseMoney(payment.amount || DEFAULT_EMI_PAYMENT);
+                payment.amount = amount === LEGACY_EMI_PAYMENT ? DEFAULT_EMI_PAYMENT : amount;
             });
             tracker.activityLog = Array.isArray(tracker.activityLog) ? tracker.activityLog : [];
             tracker.userName = tracker.userName || currentUserName;
@@ -1401,7 +1404,7 @@
             const range = getMonthRangeLabel(months);
             document.getElementById('duration').textContent = `${months} months, ${range}`;
             document.getElementById('companyTitle').textContent = `Company Payments (${range})`;
-            document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. ${formatCurrency(13650)})`;
+            document.getElementById('emiTitle').textContent = `EMI Tracking (${range} @ Rs. ${formatCurrency(DEFAULT_EMI_PAYMENT)})`;
             updateExtendControl();
         }
 
@@ -1576,7 +1579,7 @@
                 }
                 if (!(emi.youPaid && emi.companyPaid)) {
                     nextDueTitle.textContent = `${getMonthLabel(i)} EMI`;
-                    nextDueDetail.textContent = `Due Rs. ${formatCurrency(emi.amount || 13650)}. Status: ${getEmiStatus(emi, i).label}.`;
+                    nextDueDetail.textContent = `Due Rs. ${formatCurrency(emi.amount || DEFAULT_EMI_PAYMENT)}. Status: ${getEmiStatus(emi, i).label}.`;
                     return;
                 }
             }
@@ -1596,8 +1599,8 @@
                 const end = Math.min(start + 12, months);
                 const companyExpected = DEFAULT_COMPANY_PAYMENT * (end - start);
                 const companyReceived = getCompanyReceivedTotal(start, end);
-                const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
-                const emiPaid = tracker.emiPayments.slice(start, end).filter(payment => payment.youPaid).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
+                const emiPaid = tracker.emiPayments.slice(start, end).filter(payment => payment.youPaid).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
                 grid.innerHTML += `
                     <div class="plan-item">
                         <div class="plan-item-title">Year ${year + 1}</div>
@@ -1648,8 +1651,8 @@
                     const end = Math.min(start + 3, yearEnd);
                     const companyExpected = DEFAULT_COMPANY_PAYMENT * (end - start);
                     const companyReceived = getCompanyReceivedTotal(start, end);
-                    const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
-                    const emiPaid = tracker.emiPayments.slice(start, end).filter(isEmiComplete).reduce((sum, payment) => sum + (payment.amount || 13650), 0);
+                    const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
+                    const emiPaid = tracker.emiPayments.slice(start, end).filter(isEmiComplete).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
                     const status = getQuarterStatus(start, end);
                     quarterHtml += `
                         <div class="quarter-item ${status.className}">
@@ -1794,7 +1797,7 @@
                 const payment = tracker.emiPayments[i];
                 const monthLabel = getMonthLabel(i);
                 const status = getEmiStatus(payment, i);
-                const amount = payment.amount || 13650;
+                const amount = payment.amount || DEFAULT_EMI_PAYMENT;
 
                 const row = `
                     <tr class="${payment.youPaid && payment.companyPaid ? 'complete' : ''}">
@@ -2087,7 +2090,7 @@
                 const emi = tracker.emiPayments[i];
                 const monthLabel = getMonthLabel(i);
                 
-                csv += `"${monthLabel}","${company.companySent && company.youReceived ? 'Complete' : company.companySent || company.youReceived ? 'Partial' : 'Pending'}","${getPaymentAmount(company)}","${company.advance || 0}","${company.companySent ? 'Yes' : 'No'}","${company.sentDate}","${company.youReceived ? 'Yes' : 'No'}","${company.receivedDate}","${(company.comments || '').replace(/"/g, '""')}","${emi.amount || 13650}","${emi.youPaid ? 'Yes' : 'No'}","${emi.paidDate}","${emi.companyPaid ? 'Yes' : 'No'}","${emi.verifiedDate}","${(emi.comments || '').replace(/"/g, '""')}"\n`;
+                csv += `"${monthLabel}","${company.companySent && company.youReceived ? 'Complete' : company.companySent || company.youReceived ? 'Partial' : 'Pending'}","${getPaymentAmount(company)}","${company.advance || 0}","${company.companySent ? 'Yes' : 'No'}","${company.sentDate}","${company.youReceived ? 'Yes' : 'No'}","${company.receivedDate}","${(company.comments || '').replace(/"/g, '""')}","${emi.amount || DEFAULT_EMI_PAYMENT}","${emi.youPaid ? 'Yes' : 'No'}","${emi.paidDate}","${emi.companyPaid ? 'Yes' : 'No'}","${emi.verifiedDate}","${(emi.comments || '').replace(/"/g, '""')}"\n`;
             }
             
             const dataBlob = new Blob([csv], { type: 'text/csv' });
