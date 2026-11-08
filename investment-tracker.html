@@ -97,6 +97,18 @@
             align-items: center;
         }
 
+        .sync-indicator {
+            display: grid;
+            justify-items: end;
+            gap: 2px;
+        }
+
+        .last-synced {
+            color: var(--text-tertiary);
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
         .sync-status {
             font-size: 12px;
             padding: 8px 12px;
@@ -303,13 +315,13 @@
             display: none;
         }
 
-        .plan-details summary::after {
+        .plan-details > summary::after {
             content: '+';
             color: var(--text-tertiary);
             font-weight: 900;
         }
 
-        .plan-details[open] summary::after {
+        .plan-details[open] > summary::after {
             content: '-';
         }
 
@@ -361,10 +373,11 @@
         }
 
         .quarter-item {
-            padding: 0.8rem;
+            padding: 0;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             background: var(--bg-primary);
+            overflow: hidden;
         }
 
         .quarter-item.on-track {
@@ -388,6 +401,38 @@
             align-items: center;
             gap: 0.5rem;
             margin-bottom: 0.35rem;
+        }
+
+        .quarter-item > .quarter-summary {
+            display: block;
+            padding: 0.8rem;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .quarter-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .quarter-summary:focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: -3px;
+            border-radius: 10px;
+        }
+
+        .quarter-toggle {
+            color: var(--text-tertiary);
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .quarter-toggle::after {
+            content: 'Monthly details +';
+        }
+
+        .quarter-item[open] .quarter-toggle::after {
+            content: 'Hide details −';
         }
 
         .quarter-title {
@@ -428,6 +473,46 @@
             color: var(--text-secondary);
             font-size: 11px;
             margin-top: 0.2rem;
+        }
+
+        .quarter-months {
+            display: grid;
+            gap: 6px;
+            padding: 0 0.8rem 0.8rem;
+        }
+
+        .quarter-month-row {
+            display: grid;
+            grid-template-columns: minmax(78px, 0.8fr) repeat(2, minmax(0, 1.2fr));
+            gap: 8px;
+            align-items: center;
+            padding: 8px;
+            border-top: 1px solid var(--border-color);
+            border-radius: 7px;
+            background: var(--bg-secondary);
+            font-size: 11px;
+        }
+
+        .quarter-month-label {
+            color: var(--text-primary);
+            font-weight: 800;
+        }
+
+        .quarter-month-metric {
+            display: grid;
+            gap: 2px;
+        }
+
+        .quarter-month-metric > span {
+            color: var(--text-tertiary);
+        }
+
+        .quarter-month-metric > strong {
+            color: var(--text-primary);
+        }
+
+        .quarter-month-metric > small {
+            color: var(--text-secondary);
         }
 
         .overdue-pill {
@@ -598,6 +683,57 @@
             border-radius: 12px;
             background: var(--bg-primary);
             box-shadow: 0 12px 30px rgba(20, 34, 66, 0.06);
+        }
+
+        .table-filter-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.65rem;
+            margin: 0 0 0.75rem;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .table-filter-toolbar select {
+            width: auto;
+            min-width: 190px;
+            padding: 8px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font: inherit;
+        }
+
+        .restore-preview {
+            margin-top: 0.85rem;
+            padding: 0.85rem;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .restore-preview p + p {
+            margin-top: 0.35rem;
+        }
+
+        .restore-preview .button-row {
+            margin-top: 0.75rem;
+        }
+
+        .restore-message {
+            margin-top: 0.65rem;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .restore-message.error,
+        .small-note.error {
+            color: var(--accent-red);
         }
 
         table {
@@ -898,6 +1034,22 @@
             .tab-button {
                 padding: 10px 14px;
             }
+
+            .quarter-month-row {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .quarter-month-label {
+                grid-column: 1 / -1;
+            }
+
+            .quarter-toggle::after {
+                content: '+';
+            }
+
+            .quarter-item[open] .quarter-toggle::after {
+                content: '−';
+            }
         }
     </style>
 </head>
@@ -909,7 +1061,10 @@
                 <p id="headerInfo">Created <span id="createdDate">--</span> • <span id="duration">36 months</span></p>
             </div>
             <div class="header-controls">
-                <div class="sync-status syncing" id="syncStatus">Connecting...</div>
+                <div class="sync-indicator">
+                    <div class="sync-status syncing" id="syncStatus">Connecting...</div>
+                    <small class="last-synced" id="lastSynced">Last synced: not yet</small>
+                </div>
                 <button class="mode-toggle" onclick="toggleDarkMode()">🌙 Dark</button>
             </div>
         </div>
@@ -1009,6 +1164,15 @@
 
         <div id="companyTab" class="tab-content">
             <h2 id="companyTitle">Company Payments (36 months)</h2>
+            <div class="table-filter-toolbar">
+                <label for="companyFilter">Show</label>
+                <select id="companyFilter" onchange="filterCompanyPayments(this.value)">
+                    <option value="all">All months</option>
+                    <option value="due-incomplete">Due / overdue and incomplete</option>
+                    <option value="sent-awaiting-receipt">Sent, awaiting receipt</option>
+                    <option value="incomplete">Not complete</option>
+                </select>
+            </div>
             <div class="table-wrapper">
                 <table id="companyTable">
                     <thead>
@@ -1031,6 +1195,15 @@
 
         <div id="emiTab" class="tab-content">
             <h2 id="emiTitle">EMI Tracking (36 months @ Rs. 13,637)</h2>
+            <div class="table-filter-toolbar">
+                <label for="emiFilter">Show</label>
+                <select id="emiFilter" onchange="filterEmiPayments(this.value)">
+                    <option value="all">All months</option>
+                    <option value="due-incomplete">Due / overdue and incomplete</option>
+                    <option value="awaiting-verification">Paid, awaiting verification</option>
+                    <option value="incomplete">Not complete</option>
+                </select>
+            </div>
             <div class="table-wrapper">
                 <table id="emiTable">
                     <thead>
@@ -1070,6 +1243,17 @@
                     <button class="button secondary" onclick="resetAutoAdjustments()">Recalculate Advances</button>
                 </div>
                 <p class="small-note" id="trackerPathInfo"></p>
+                <p class="small-note">
+                    A tracker key selects a separate data path; it does not encrypt your data. Generating one switches
+                    to a new, empty tracker and reloads the page. Share the full page link to let someone use that tracker;
+                    anyone with the link can view and edit its data. Keep “tracker” to return to your existing data.
+                    Custom keys require Firebase read/write access for their data path.
+                </p>
+                <div class="button-row">
+                    <button class="button secondary" onclick="useMainTracker()">Use Main Tracker</button>
+                    <button class="button secondary" onclick="copyTrackerLink()">Copy Tracker Link</button>
+                </div>
+                <p class="small-note" id="trackerLinkMessage" aria-live="polite"></p>
             </div>
             
             <div class="section">
@@ -1077,6 +1261,13 @@
                 <div class="button-row">
                     <button class="button" onclick="exportJSON()">Download JSON Backup</button>
                     <button class="button secondary" onclick="exportCSV()">Download CSV</button>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label class="field-label" for="backupFile">Restore from JSON backup</label>
+                    <input type="file" id="backupFile" accept=".json,application/json" onchange="previewJSONRestore(this.files && this.files[0])">
+                    <p class="small-note">Select a tracker backup to preview it. Restoring replaces the data in the currently selected tracker.</p>
+                    <div class="restore-preview" id="restorePreview" hidden></div>
+                    <p class="restore-message" id="restoreMessage" aria-live="polite"></p>
                 </div>
                 <p style="margin: 1rem 0 0 0; font-size: 12px; color: var(--text-secondary);">
                     Real-time cloud sync active. Export for backup & tax records.
@@ -1148,6 +1339,10 @@
 
         let currentUserName = localStorage.getItem(USER_NAME_STORAGE_KEY) || 'User';
         let currentTrackerKey = getInitialTrackerKey();
+        let lastSyncedAt = null;
+        let companyPaymentFilter = 'all';
+        let emiPaymentFilter = 'all';
+        let pendingBackupRestore = null;
 
         let tracker = {
             extend4Years: false,
@@ -1285,58 +1480,74 @@
             tracker.activityLog = tracker.activityLog.slice(0, 100);
         }
 
-        function initializeTracker() {
+        async function initializeTracker() {
             console.log('Attempting to initialize tracker from Firebase...');
-            
-            getTrackerRef().once('value')
-                .then((snapshot) => {
-                    console.log('Firebase connection successful');
+
+            renderSecurityInfo();
+            const trackerRef = getTrackerRef();
+            try {
+                const snapshot = await trackerRef.once('value');
+                console.log('Firebase connection successful');
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    tracker = { ...tracker, ...data };
+                    console.log('Data loaded from Firebase');
+                } else {
+                    console.log('No data found, creating new tracker');
+                    await trackerRef.set(tracker);
+                }
+                isInitialized = true;
+                renderAll();
+                updateSyncStatus(true);
+
+                trackerRef.on('value', (snapshot) => {
                     if (snapshot.exists()) {
                         const data = snapshot.val();
                         tracker = { ...tracker, ...data };
-                        console.log('Data loaded from Firebase');
-                    } else {
-                        console.log('No data found, creating new tracker');
-                        getTrackerRef().set(tracker);
+                        renderAll();
+                        updateSyncStatus(true);
                     }
-                    isInitialized = true;
-                    renderAll();
-                    updateSyncStatus(true);
-                    
-                    // Set up real-time listener after initial load
-                    getTrackerRef().on('value', (snapshot) => {
-                        if (snapshot.exists()) {
-                            const data = snapshot.val();
-                            tracker = { ...tracker, ...data };
-                            renderAll();
-                        }
-                    }, (error) => {
-                        console.error('Listener error:', error);
-                        updateSyncStatus(false, 'Connection error');
-                    });
-                })
-                .catch((error) => {
-                    console.error('Firebase connection error:', error);
-                    updateSyncStatus(false, 'Firebase error');
+                }, (error) => {
+                    console.error('Listener error:', error);
+                    updateSyncStatus(false, 'Connection error');
+                    showTrackerAccessError(error);
                 });
+            } catch (error) {
+                console.error('Firebase connection error:', error);
+                updateSyncStatus(false, 'Firebase error');
+                showTrackerAccessError(error);
+            }
+        }
+
+        function showTrackerAccessError(error, requestedPath = getTrackerPath()) {
+            const permissionDenied = isPermissionDenied(error);
+            const path = requestedPath;
+            document.getElementById('trackerPathInfo').textContent = permissionDenied
+                ? `Firebase denied access to /${path}. The key does not grant access by itself. Custom tracker keys need read/write permission in Firebase Database Rules. Your current tracker is still selected.`
+                : `Could not connect to /${path}. Check your internet connection and Firebase Database availability.`;
         }
 
         function updateSyncStatus(synced, message = null) {
             const status = document.getElementById('syncStatus');
+            const lastSynced = document.getElementById('lastSynced');
             if (synced) {
                 status.textContent = '✓ Synced';
                 status.className = 'sync-status synced';
-            } else if (message) {
+                lastSyncedAt = Date.now();
+                if (lastSynced) {
+                    lastSynced.textContent = `Last synced: ${new Date(lastSyncedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}`;
+                }
+            } else if (message && /(failed|error|denied|unsaved)/i.test(message)) {
                 status.textContent = message;
                 status.className = 'sync-status error';
             } else {
-                status.textContent = 'Syncing...';
+                status.textContent = message || 'Saving...';
                 status.className = 'sync-status syncing';
             }
         }
 
         function saveData() {
-            updateSyncStatus(false);
+            updateSyncStatus(false, 'Saving...');
             getTrackerRef().set(tracker)
                 .then(() => {
                     updateSyncStatus(true);
@@ -1344,7 +1555,7 @@
                 })
                 .catch((error) => {
                     console.error('Save error:', error);
-                    updateSyncStatus(false, 'Save failed');
+                    updateSyncStatus(false, 'Unsaved changes');
                 });
         }
 
@@ -1652,18 +1863,55 @@
                     const companyExpected = DEFAULT_COMPANY_PAYMENT * (end - start);
                     const companyReceived = getCompanyReceivedTotal(start, end);
                     const emiDue = tracker.emiPayments.slice(start, end).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
-                    const emiPaid = tracker.emiPayments.slice(start, end).filter(isEmiComplete).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
+                    const emiPaid = tracker.emiPayments.slice(start, end).filter(payment => payment.youPaid).reduce((sum, payment) => sum + (payment.amount || DEFAULT_EMI_PAYMENT), 0);
                     const status = getQuarterStatus(start, end);
-                    quarterHtml += `
-                        <div class="quarter-item ${status.className}">
-                            <div class="quarter-topline">
-                                <div class="quarter-title">Q${quarter + 1}</div>
-                                <div class="quarter-status">${status.label}</div>
+                    let monthRows = '';
+
+                    for (let month = start; month < end; month++) {
+                        const companyPayment = tracker.companyPayments[month];
+                        const emiPayment = tracker.emiPayments[month];
+                        const companyMonthReceived = companyPayment.youReceived ? getCompanyCashValue(companyPayment) : 0;
+                        const emiMonthPaid = emiPayment.youPaid ? (emiPayment.amount || DEFAULT_EMI_PAYMENT) : 0;
+                        const companyMonthStatus = companyPayment.youReceived
+                            ? (companyPayment.companySent ? 'Sent and received' : 'Received')
+                            : (companyPayment.companySent ? 'Sent · awaiting receipt' : getCompanyStatus(companyPayment, month).label);
+                        const emiMonthStatus = emiPayment.youPaid
+                            ? (emiPayment.companyPaid ? 'Paid and verified' : 'Paid · awaiting verification')
+                            : (emiPayment.companyPaid ? 'Verified · not marked paid' : getEmiStatus(emiPayment, month).label);
+
+                        monthRows += `
+                            <div class="quarter-month-row">
+                                <strong class="quarter-month-label">${getMonthLabel(month)}</strong>
+                                <div class="quarter-month-metric">
+                                    <span>Company received</span>
+                                    <strong>Rs. ${formatCurrency(companyMonthReceived)}</strong>
+                                    <small>${escapeHtml(companyMonthStatus)}</small>
+                                </div>
+                                <div class="quarter-month-metric">
+                                    <span>EMI paid</span>
+                                    <strong>Rs. ${formatCurrency(emiMonthPaid)}</strong>
+                                    <small>${escapeHtml(emiMonthStatus)}</small>
+                                </div>
                             </div>
-                            <div class="quarter-range">${getMonthLabel(start)} to ${getMonthLabel(end - 1)}</div>
-                            <div class="quarter-row"><span>Company</span><strong>Rs. ${formatCurrency(companyReceived)} / ${formatCurrency(companyExpected)}</strong></div>
-                            <div class="quarter-row"><span>EMI</span><strong>Rs. ${formatCurrency(emiPaid)} / ${formatCurrency(emiDue)}</strong></div>
-                        </div>
+                        `;
+                    }
+
+                    quarterHtml += `
+                        <details class="quarter-item ${status.className}">
+                            <summary class="quarter-summary">
+                                <div class="quarter-topline">
+                                    <div class="quarter-title">Q${quarter + 1}</div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="quarter-status">${status.label}</div>
+                                        <span class="quarter-toggle" aria-hidden="true"></span>
+                                    </div>
+                                </div>
+                                <div class="quarter-range">${getMonthLabel(start)} to ${getMonthLabel(end - 1)}</div>
+                                <div class="quarter-row"><span>Company received</span><strong>Rs. ${formatCurrency(companyReceived)} / ${formatCurrency(companyExpected)}</strong></div>
+                                <div class="quarter-row"><span>EMI paid</span><strong>Rs. ${formatCurrency(emiPaid)} / ${formatCurrency(emiDue)}</strong></div>
+                            </summary>
+                            <div class="quarter-months">${monthRows}</div>
+                        </details>
                     `;
                 }
 
@@ -1745,13 +1993,40 @@
             return '';
         }
 
+        function filterCompanyPayments(filter) {
+            companyPaymentFilter = filter;
+            renderCompanyTable();
+        }
+
+        function filterEmiPayments(filter) {
+            emiPaymentFilter = filter;
+            renderEmiTable();
+        }
+
+        function shouldShowCompanyPayment(payment, monthIndex) {
+            if (companyPaymentFilter === 'due-incomplete') return !isCompanyComplete(payment) && getDueStatus(monthIndex) !== 'upcoming';
+            if (companyPaymentFilter === 'sent-awaiting-receipt') return payment.companySent && !payment.youReceived;
+            if (companyPaymentFilter === 'incomplete') return !isCompanyComplete(payment);
+            return true;
+        }
+
+        function shouldShowEmiPayment(payment, monthIndex) {
+            if (emiPaymentFilter === 'due-incomplete') return !isEmiComplete(payment) && getDueStatus(monthIndex) !== 'upcoming';
+            if (emiPaymentFilter === 'awaiting-verification') return payment.youPaid && !payment.companyPaid;
+            if (emiPaymentFilter === 'incomplete') return !isEmiComplete(payment);
+            return true;
+        }
+
         function renderCompanyTable() {
             const tbody = document.getElementById('companyBody');
             const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
+            let visibleRows = 0;
 
             for (let i = 0; i < months; i++) {
                 const payment = tracker.companyPayments[i];
+                if (!shouldShowCompanyPayment(payment, i)) continue;
+                visibleRows++;
                 const monthLabel = getMonthLabel(i);
                 const status = getCompanyStatus(payment, i);
                 const advanceNote = getAdvanceNote(payment);
@@ -1786,15 +2061,22 @@
                 
                 tbody.innerHTML += row;
             }
+
+            if (!visibleRows) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-secondary);">No months match this filter.</td></tr>';
+            }
         }
 
         function renderEmiTable() {
             const tbody = document.getElementById('emiBody');
             const months = tracker.extend4Years ? 48 : 36;
             tbody.innerHTML = '';
+            let visibleRows = 0;
 
             for (let i = 0; i < months; i++) {
                 const payment = tracker.emiPayments[i];
+                if (!shouldShowEmiPayment(payment, i)) continue;
+                visibleRows++;
                 const monthLabel = getMonthLabel(i);
                 const status = getEmiStatus(payment, i);
                 const amount = payment.amount || DEFAULT_EMI_PAYMENT;
@@ -1822,6 +2104,10 @@
                 `;
                 
                 tbody.innerHTML += row;
+            }
+
+            if (!visibleRows) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No months match this filter.</td></tr>';
             }
         }
 
@@ -2019,20 +2305,86 @@
             saveData();
         }
 
-        function updateTrackerKey(value) {
+        async function updateTrackerKey(value) {
             const sanitized = sanitizeTrackerKey(value);
-            if (sanitized) {
+            const keyInput = document.getElementById('trackerKey');
+            if (!sanitized || sanitized === currentTrackerKey) {
+                keyInput.value = currentTrackerKey;
+                return;
+            }
+
+            const nextPath = sanitized === DEFAULT_TRACKER_KEY ? 'tracker' : `trackers/${sanitized}`;
+            document.getElementById('trackerPathInfo').textContent = `Checking Firebase access to ${nextPath}…`;
+            updateSyncStatus(false, 'Checking access...');
+
+            try {
+                await db.ref(nextPath).once('value');
                 currentTrackerKey = sanitized;
                 localStorage.setItem(TRACKER_KEY_STORAGE_KEY, sanitized);
-                addActivity(`Updated tracker key to ${sanitized}`);
+                addActivity('Updated tracker key');
                 setTimeout(() => {
-                    window.location.href = `?tracker=${sanitized}`;
+                    window.location.search = new URLSearchParams({ tracker: sanitized }).toString();
                 }, 500);
+            } catch (error) {
+                console.error('Tracker key access check failed:', error);
+                keyInput.value = currentTrackerKey;
+                renderSecurityInfo();
+                showTrackerAccessError(error, nextPath);
+                updateSyncStatus(false, isPermissionDenied(error) ? 'Access denied' : 'Firebase error');
+            }
+        }
+
+        function isPermissionDenied(error) {
+            return Boolean(error && (
+                error.code === 'PERMISSION_DENIED' ||
+                /permission denied/i.test(error.message || '')
+            ));
+        }
+
+        function useMainTracker() {
+            currentTrackerKey = DEFAULT_TRACKER_KEY;
+            localStorage.setItem(TRACKER_KEY_STORAGE_KEY, DEFAULT_TRACKER_KEY);
+            window.location.search = new URLSearchParams({ tracker: DEFAULT_TRACKER_KEY }).toString();
+        }
+
+        async function copyTrackerLink() {
+            const linkMessage = document.getElementById('trackerLinkMessage');
+            const shareUrl = new URL(window.location.href);
+            shareUrl.searchParams.set('tracker', currentTrackerKey);
+
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(shareUrl.toString());
+                } else {
+                    const temporaryInput = document.createElement('textarea');
+                    temporaryInput.value = shareUrl.toString();
+                    temporaryInput.setAttribute('readonly', '');
+                    temporaryInput.style.position = 'fixed';
+                    temporaryInput.style.opacity = '0';
+                    document.body.appendChild(temporaryInput);
+                    temporaryInput.select();
+                    const copied = document.execCommand('copy');
+                    temporaryInput.remove();
+                    if (!copied) throw new Error('Clipboard copy was not available.');
+                }
+                linkMessage.textContent = 'Tracker link copied. Anyone with it can view and edit this tracker.';
+                linkMessage.classList.remove('error');
+            } catch (error) {
+                console.error('Could not copy tracker link:', error);
+                linkMessage.textContent = 'Could not copy automatically. Copy the page URL from your browser address bar.';
+                linkMessage.classList.add('error');
             }
         }
 
         function generateTrackerKey() {
-            const key = 'tracker_' + Math.random().toString(36).substr(2, 9);
+            if (!window.crypto || typeof window.crypto.getRandomValues !== 'function') {
+                window.alert('Secure key generation is not supported by this browser.');
+                return;
+            }
+
+            const randomBytes = new Uint8Array(24);
+            window.crypto.getRandomValues(randomBytes);
+            const key = 'tracker_' + Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('');
             document.getElementById('trackerKey').value = key;
             updateTrackerKey(key);
         }
@@ -2067,6 +2419,138 @@
             addActivity('Recalculated advance payments', 'Auto-adjusted rows were reset and rebuilt from current advances.');
             renderAll();
             saveData();
+        }
+
+        function validateFirebaseBackupValue(value, path = 'backup') {
+            if (Array.isArray(value)) {
+                value.forEach((item, index) => validateFirebaseBackupValue(item, `${path}[${index}]`));
+                return;
+            }
+            if (!value || typeof value !== 'object') return;
+
+            Object.entries(value).forEach(([key, item]) => {
+                if (/[.#$\[\]\/\u0000-\u001F\u007F]/.test(key) || ['__proto__', 'prototype', 'constructor'].includes(key)) {
+                    throw new Error(`The backup contains a field name Firebase cannot store (${path}.${key}).`);
+                }
+                validateFirebaseBackupValue(item, `${path}.${key}`);
+            });
+        }
+
+        async function previewJSONRestore(file) {
+            const preview = document.getElementById('restorePreview');
+            const message = document.getElementById('restoreMessage');
+            pendingBackupRestore = null;
+            preview.hidden = true;
+            preview.innerHTML = '';
+            message.textContent = '';
+            message.classList.remove('error');
+
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                message.textContent = 'This backup is larger than the 2 MB restore limit.';
+                message.classList.add('error');
+                return;
+            }
+
+            try {
+                const backup = JSON.parse(await file.text());
+                if (!backup || typeof backup !== 'object' || Array.isArray(backup)) {
+                    throw new Error('The selected file must contain a tracker backup object.');
+                }
+                if (!Array.isArray(backup.companyPayments) || !Array.isArray(backup.emiPayments)) {
+                    throw new Error('This file is missing the company or EMI payment schedule.');
+                }
+                if (backup.companyPayments.length < 1 || backup.companyPayments.length > 48 ||
+                    backup.emiPayments.length < 1 || backup.emiPayments.length > 48) {
+                    throw new Error('The backup must contain between 1 and 48 company and EMI months.');
+                }
+                if (backup.companyPayments.some(row => !row || typeof row !== 'object' || Array.isArray(row)) ||
+                    backup.emiPayments.some(row => !row || typeof row !== 'object' || Array.isArray(row))) {
+                    throw new Error('The backup contains an invalid payment row.');
+                }
+                if (backup.activityLog !== undefined && (!Array.isArray(backup.activityLog) || backup.activityLog.some(entry => !entry || typeof entry !== 'object' || Array.isArray(entry)))) {
+                    throw new Error('The backup contains an invalid activity log.');
+                }
+                validateFirebaseBackupValue(backup);
+
+                pendingBackupRestore = { backup, fileName: file.name };
+                const receivedCount = backup.companyPayments.filter(payment => payment.youReceived).length;
+                const emiPaidCount = backup.emiPayments.filter(payment => payment.youPaid).length;
+                const verifiedCount = backup.emiPayments.filter(payment => payment.companyPaid).length;
+                preview.innerHTML = `
+                    <strong>Backup preview</strong>
+                    <p>File: ${escapeHtml(file.name)}</p>
+                    <p>Period: ${escapeHtml(backup.paymentStartMonth || DEFAULT_PAYMENT_START_MONTH)} · ${backup.companyPayments.length} company months · ${backup.emiPayments.length} EMI months</p>
+                    <p>Marked received: ${receivedCount} · EMI paid: ${emiPaidCount} · EMI verified: ${verifiedCount}</p>
+                    <p>This will replace the data in <strong>/${escapeHtml(getTrackerPath())}</strong>.</p>
+                    <div class="button-row">
+                        <button class="button" id="restoreBackupButton" onclick="restoreJSONBackup()">Restore This Backup</button>
+                    </div>
+                `;
+                preview.hidden = false;
+            } catch (error) {
+                console.error('Backup preview failed:', error);
+                message.textContent = error.message || 'Could not read this JSON backup.';
+                message.classList.add('error');
+            }
+        }
+
+        async function restoreJSONBackup() {
+            if (!pendingBackupRestore) return;
+
+            const { backup, fileName } = pendingBackupRestore;
+            const destination = `/${getTrackerPath()}`;
+            const receivedCount = backup.companyPayments.filter(payment => payment.youReceived).length;
+            const emiPaidCount = backup.emiPayments.filter(payment => payment.youPaid).length;
+            const confirmed = window.confirm(
+                `Restore ${fileName} to ${destination}? This replaces its current data with ${receivedCount} received company months and ${emiPaidCount} paid EMI months.`
+            );
+            if (!confirmed) return;
+
+            const button = document.getElementById('restoreBackupButton');
+            const message = document.getElementById('restoreMessage');
+            const previousTracker = tracker;
+            const previousUserName = currentUserName;
+            button.disabled = true;
+            message.textContent = 'Restoring backup…';
+            message.classList.remove('error');
+            updateSyncStatus(false, 'Saving...');
+
+            try {
+                tracker = {
+                    extend4Years: false,
+                    userName: currentUserName,
+                    activityLog: [],
+                    createdDate: new Date().toISOString().split('T')[0],
+                    paymentStartMonth: DEFAULT_PAYMENT_START_MONTH,
+                    companyPayments: [],
+                    emiPayments: [],
+                    ...JSON.parse(JSON.stringify(backup)),
+                };
+                currentUserName = String(tracker.userName || currentUserName);
+                tracker.createdDate = tracker.createdDate || new Date().toISOString().split('T')[0];
+                normalizeTracker();
+                applyPendingAdvances();
+                addActivity('Restored JSON backup', fileName);
+                await getTrackerRef().set(tracker);
+                localStorage.setItem(USER_NAME_STORAGE_KEY, currentUserName);
+                renderAll();
+                updateSyncStatus(true);
+                document.getElementById('backupFile').value = '';
+                document.getElementById('restorePreview').hidden = true;
+                document.getElementById('restorePreview').innerHTML = '';
+                pendingBackupRestore = null;
+                message.textContent = 'Backup restored and synced to the selected tracker.';
+            } catch (error) {
+                console.error('Backup restore failed:', error);
+                tracker = previousTracker;
+                currentUserName = previousUserName;
+                renderAll();
+                updateSyncStatus(false, 'Save failed');
+                message.textContent = 'Restore failed. The tracker kept its previous data. Check Firebase access and try again.';
+                message.classList.add('error');
+                button.disabled = false;
+            }
         }
 
         function exportJSON() {

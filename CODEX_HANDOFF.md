@@ -1,6 +1,6 @@
 # Investment Tracker Handoff
 
-Last updated: 2026-05-31
+Last updated: 2026-11-08
 
 ## Project
 
@@ -25,14 +25,15 @@ It is meant to be simple enough for a non-technical company representative to op
 
 - Dashboard shows received amount, company progress, EMI paid, and EMI progress.
 - Dashboard also shows tracker health, next action, and a year-wise payment plan summary.
-- Dashboard shows quarterly progress grouped into expandable year sections and an overdue count.
+- Dashboard shows quarterly progress grouped into expandable year sections and an overdue count. Each quarter expands to monthly company-received and EMI-paid amounts with sent, received, and verification status.
 - Dashboard expected company total stays fixed at Rs. 5,40,000 for the 36-month agreement; advances are treated as early cash received, not as a reduction to the agreement value.
 - Payments tab supports Amount, Advance, Sent, Received, and Comments.
-- Payments tab also shows status, sent date, received date, and advance explanation labels.
+- Payments tab also shows status, sent date, received date, and advance explanation labels, plus filters for due items and outstanding receipt confirmations.
 - EMI tab supports Paid, Verified, Paid Date, Verified Date, Comments, and status.
-- More tab includes JSON export, CSV export, agreement details, activity log, user name, optional secret tracker key, and recalculation.
+- EMI tab also has filters for due items and payments awaiting verification.
+- More tab includes JSON export and restore preview, CSV export, agreement details, activity log, user name, optional secret tracker key, share-link copy, and recalculation.
 - Dark mode preference is stored in browser storage.
-- Firebase sync keeps both parties on the same tracker data.
+- Firebase sync keeps both parties on the same tracker data and shows the last successful sync time.
 - Navigation is now near the top and sticky for quicker switching.
 - Amount and Advance inputs are wide enough to show full values like `15000`.
 - The normal monthly Amount field is capped at Rs. 15,000 to prevent accidental extra-zero entries such as `150000`.
@@ -145,6 +146,8 @@ Implemented mitigation:
 - The app now supports an optional secret tracker key using `?tracker=<secret-key>`.
 - The original `/tracker` path still works by default so existing data is not broken.
 - A generated key stores data under `trackers/<secret-key>`, which is harder to guess but is not a full auth system.
+- `database.rules.json` and `firebase.json` define link-sharing rules for `/tracker` and `/trackers/<key>`. The user published these rules in Firebase Console on 2026-11-08. Custom tracker access is bearer-link access: anyone who obtains the full key/link can read and edit that tracker.
+- A read-only request to a fresh, nonexistent custom tracker path returned HTTP 200 with `null` after publication. Firebase CLI is not installed in this workspace.
 
 Recommended stronger security improvement:
 

@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "tracker": {
+      ".read": true,
+      ".write": true
+    },
+    "trackers": {
+      "$trackerKey": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
